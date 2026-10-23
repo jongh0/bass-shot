@@ -284,7 +284,10 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
     /**
      * 현재 화면의 최종 결과(타임마크 + 최신 계측선 + EXIF 헤더)를 고화질 Canvas로 합성하여 DCIM/BassShot에 저장
      */
-    fun saveCurrentResult() {
+    fun saveCurrentResult(
+        containerWidthDp: Float = 360f,
+        fontScale: Float = 1.0f
+    ) {
         val original = _uiState.value.capturedOriginalBitmap ?: return
         val env = _uiState.value.environmentData
         val measure = _uiState.value.measurement
@@ -293,12 +296,14 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
         viewModelScope.launch(Dispatchers.Default) {
             _uiState.update { it.copy(isSaving = true) }
 
-            // 원본 해상도 Canvas 직접 합성 (불러온 사진일 경우 타임마크 생략)
+            // 원본 해상도 Canvas 직접 합성 (화면과 1:1 동일한 scaleDp 및 fontScale 반영)
             val compositeBitmap = HighResCanvasCompositor.composite(
                 originalBitmap = original,
                 environmentData = env,
                 measurement = measure,
-                isImportedPhoto = isImported
+                isImportedPhoto = isImported,
+                containerWidthDp = containerWidthDp,
+                fontScale = fontScale
             )
 
             val prefs = userPreferencesRepository.userPreferencesFlow.firstOrNull()

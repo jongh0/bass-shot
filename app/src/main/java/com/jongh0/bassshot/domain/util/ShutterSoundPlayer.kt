@@ -7,8 +7,8 @@ import java.io.File
 
 object ShutterSoundPlayer {
 
-    // 중간 정도 볼륨 (50%)
-    private const val DEFAULT_VOLUME = 0.5f
+    // 2/3로 감쇠한 볼륨 (약 33%)
+    private const val DEFAULT_VOLUME = 0.33f
 
     // 안드로이드 및 삼성 갤럭시 기본 카메라 셔터 사운드 파일 경로 후보
     private val CANDIDATE_SOUND_PATHS = listOf(

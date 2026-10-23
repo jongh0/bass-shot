@@ -3,6 +3,7 @@ package com.jongh0.bassshot.ui.components
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -43,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,6 +52,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.jongh0.bassshot.R
 import com.jongh0.bassshot.domain.model.SavedPhotoItem
 import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
 import com.jongh0.bassshot.ui.theme.MutedSilver
@@ -149,145 +152,107 @@ fun PhotoViewerDialog(
                     }
                 }
 
-                // 3. 하단 액션 바 (카카오톡 전송, 더보기, 삭제)
-                Row(
+                // 3. 하단 액션 바 (카카오톡 전송, 더보기, 삭제 - 글자 없이 버튼만 수직 중앙 정렬)
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .navigationBarsPadding()
-                        .padding(horizontal = 32.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
+                        .height(96.dp)
+                        .navigationBarsPadding(),
+                    contentAlignment = Alignment.Center
                 ) {
-                    val currentPhoto = photos.getOrNull(pagerState.currentPage)
-
-                    // [액션 1] 카카오톡 전송
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                    Row(
                         modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                if (currentPhoto != null) {
-                                    val kakaoIntent = Intent(Intent.ACTION_SEND).apply {
-                                        type = "image/jpeg"
-                                        putExtra(Intent.EXTRA_STREAM, currentPhoto.uri)
-                                        setPackage("com.kakao.talk")
-                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    }
-                                    try {
-                                        context.startActivity(kakaoIntent)
-                                    } catch (e: ActivityNotFoundException) {
-                                        // 카카오톡 미설치 시 일반 공유 시트로 폴백
-                                        val chooser = Intent.createChooser(
-                                            Intent(Intent.ACTION_SEND).apply {
-                                                type = "image/jpeg"
-                                                putExtra(Intent.EXTRA_STREAM, currentPhoto.uri)
-                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                            },
-                                            "카카오톡 공유"
-                                        )
-                                        context.startActivity(chooser)
-                                    }
-                                }
-                            }
-                            .padding(8.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 48.dp),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val currentPhoto = photos.getOrNull(pagerState.currentPage)
+
+                        // [액션 1] 카카오톡 전송 버튼 (실제 카카오톡 공식 브랜드 아이콘)
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(Color(0xFFFEE500)),
+                                .size(48.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    if (currentPhoto != null) {
+                                        val kakaoIntent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "image/jpeg"
+                                            putExtra(Intent.EXTRA_STREAM, currentPhoto.uri)
+                                            setPackage("com.kakao.talk")
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        try {
+                                            context.startActivity(kakaoIntent)
+                                        } catch (e: ActivityNotFoundException) {
+                                            val chooser = Intent.createChooser(
+                                                Intent(Intent.ACTION_SEND).apply {
+                                                    type = "image/jpeg"
+                                                    putExtra(Intent.EXTRA_STREAM, currentPhoto.uri)
+                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                },
+                                                "카카오톡 공유"
+                                            )
+                                            context.startActivity(chooser)
+                                        }
+                                    }
+                                },
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = "TALK",
-                                color = Color(0xFF3C1E1E),
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Black
+                            Image(
+                                painter = painterResource(id = R.drawable.ic_kakaotalk),
+                                contentDescription = "카카오톡 공유",
+                                modifier = Modifier.fillMaxSize()
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Kakao",
-                            color = MutedSilver,
-                            fontSize = 11.5.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
 
-                    // [액션 2] 더 보기 (시스템 공유 시트)
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                if (currentPhoto != null) {
-                                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                        type = "image/jpeg"
-                                        putExtra(Intent.EXTRA_STREAM, currentPhoto.uri)
-                                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                    }
-                                    val chooser = Intent.createChooser(shareIntent, "사진 공유")
-                                    context.startActivity(chooser)
-                                }
-                            }
-                            .padding(8.dp)
-                    ) {
+                        // [액션 2] 더 보기 (시스템 공유 시트) 버튼
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
                                 .background(AnodizedCharcoal)
-                                .border(1.dp, SubtleTitanium, CircleShape),
+                                .border(1.dp, SubtleTitanium, CircleShape)
+                                .clickable {
+                                    if (currentPhoto != null) {
+                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "image/jpeg"
+                                            putExtra(Intent.EXTRA_STREAM, currentPhoto.uri)
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        val chooser = Intent.createChooser(shareIntent, "사진 공유")
+                                        context.startActivity(chooser)
+                                    }
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Share,
                                 contentDescription = "더 보기",
                                 tint = TitaniumSilver,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "더 보기",
-                            color = MutedSilver,
-                            fontSize = 11.5.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
 
-                    // [액션 3] 삭제
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .clickable {
-                                showDeleteConfirmDialog = true
-                            }
-                            .padding(8.dp)
-                    ) {
+                        // [액션 3] 삭제 버튼
                         Box(
                             modifier = Modifier
-                                .size(42.dp)
+                                .size(48.dp)
                                 .clip(CircleShape)
                                 .background(AnodizedCharcoal)
-                                .border(1.dp, SubtleTitanium, CircleShape),
+                                .border(1.dp, SubtleTitanium, CircleShape)
+                                .clickable {
+                                    showDeleteConfirmDialog = true
+                                },
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
                                 contentDescription = "삭제",
                                 tint = Color(0xFFFF5C5C),
-                                modifier = Modifier.size(22.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "삭제",
-                            color = Color(0xFFFF5C5C),
-                            fontSize = 11.5.sp,
-                            fontWeight = FontWeight.Medium
-                        )
                     }
                 }
             }

@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.NormalizedPoint
 import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
+import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.OpticalWhiteGlow
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
@@ -193,14 +194,16 @@ fun MeasurementOverlay(
             drawPrecisionHandle(tailPx, OpticalWhite, activeTarget == DragTarget.TAIL, handleRadius)
         }
 
-        // 4. 좌상단(TopStart) 스펙 텍스트 (기압 아래 살짝 띄워서 배치, 폰트 크기/색상 기압과 동일)
+        // 4. 좌상단(TopStart) 스펙 텍스트 (날씨 3줄 아래 살짝 간격을 띄워서 배치)
         val isDragging = activeTarget != DragTarget.NONE
         val textShadow = Shadow(
             color = Color(0xD9000000),
             offset = Offset(0f, 2f),
             blurRadius = 6f
         )
-        val topPadding = if (hasWeatherAbove) 64.dp else 10.dp
+        // 날씨 3줄(10dp 시작 + 3줄 텍스트(16sp*3) + 사이간격 4dp) 아래에 살짝 간격(10dp) 추가
+        val weatherBlockHeight = with(density) { (48.sp).toDp() } + 14.dp
+        val topPadding = if (hasWeatherAbove) weatherBlockHeight + 10.dp else 10.dp
 
         Column(
             modifier = Modifier
@@ -209,40 +212,30 @@ fun MeasurementOverlay(
                 .alpha(if (isDragging) 0.35f else 1.0f),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // 4줄: 길이
+            // 4줄: 길이 (하단 주소와 동일한 11.5sp, Normal, MutedSilver)
             Text(
                 text = "길이 ${measurement.lengthCm}cm",
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 11.5.sp,
+                    lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = TitaniumSilver
+                color = MutedSilver
             )
 
-            // 5줄: 체고
-            Text(
-                text = "체고 ${measurement.girthCm}cm",
-                style = TextStyle(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
-                    shadow = textShadow
-                ),
-                color = TitaniumSilver
-            )
-
-            // 6줄: 무게
+            // 5줄: 무게
             Text(
                 text = "무게 ${measurement.weightG}g",
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 11.5.sp,
+                    lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = TitaniumSilver
+                color = MutedSilver
             )
         }
     }

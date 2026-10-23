@@ -59,38 +59,41 @@ fun TimemarkOverlay(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // 1줄: 날씨 및 기온
+            // 1줄: 날씨 및 기온 (하단 주소와 동일한 11.5sp, Normal, MutedSilver 적용)
             Text(
                 text = environmentData.formattedWeatherLine1(),
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Normal,
                     fontSize = 11.5.sp,
+                    lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = OpticalWhite
+                color = MutedSilver
             )
             // 2줄: 바람
             Text(
                 text = environmentData.formattedWeatherLine2(),
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 11.5.sp,
+                    lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = TitaniumSilver
+                color = MutedSilver
             )
             // 3줄: 기압
             Text(
                 text = environmentData.formattedWeatherLine3(),
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Medium,
-                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 11.5.sp,
+                    lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = TitaniumSilver
+                color = MutedSilver
             )
         }
 
@@ -108,7 +111,7 @@ fun TimemarkOverlay(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                // 1. 시간 (Tall Condensed 38sp)
+                // 1. 시간 (Tall Condensed 38sp, 날짜와 동일한 OpticalWhite 색상 적용)
                 Text(
                     text = environmentData.timeFormatted,
                     style = TextStyle(
@@ -120,7 +123,7 @@ fun TimemarkOverlay(
                         fontFeatureSettings = "tnum",
                         shadow = textShadow
                     ),
-                    color = MutedSilver
+                    color = OpticalWhite
                 )
 
                 Spacer(modifier = Modifier.height(3.dp))
