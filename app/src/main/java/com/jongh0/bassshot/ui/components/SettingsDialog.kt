@@ -179,13 +179,13 @@ fun SettingsDialog(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = "무보정 원본 사진 함께 저장",
+                        text = "원본 사진 저장",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                         color = MutedSilver
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "합성본 외에 텍스트와 계측선이 없는 원본 사진을 DCIM/BassShot에 함께 보관합니다.",
+                        text = "원본 사진을 함께 저장합니다.",
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
                         color = WarmGraphite
                     )

@@ -91,7 +91,7 @@ data class EnvironmentData(
         if (weatherPart.isNotEmpty()) parts.add(weatherPart)
 
         if (windSpeedMps != null) {
-            parts.add("바람 ${String.format("%.1f", windSpeedMps)}m/s")
+            parts.add("바람 ${String.format(java.util.Locale.US, "%.1f", windSpeedMps)}m/s")
         }
 
         if (pressureHpa != null) {

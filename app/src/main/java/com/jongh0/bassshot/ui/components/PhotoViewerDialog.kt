@@ -152,12 +152,12 @@ fun PhotoViewerDialog(
                     }
                 }
 
-                // 3. 하단 액션 바 (카카오톡 전송, 더보기, 삭제 - 글자 없이 버튼만 수직 중앙 정렬)
+                // 3. 하단 액션 바 (카카오톡 전송, 더보기, 삭제 - 내비게이션 바 위 여유 있는 패딩으로 수직 중앙 정렬)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(96.dp)
-                        .navigationBarsPadding(),
+                        .navigationBarsPadding()
+                        .padding(top = 16.dp, bottom = 32.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(

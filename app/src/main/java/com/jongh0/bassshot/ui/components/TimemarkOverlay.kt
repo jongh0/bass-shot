@@ -59,7 +59,7 @@ fun TimemarkOverlay(
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // 1줄: 날씨 및 기온 (하단 주소와 동일한 11.5sp, Normal, MutedSilver 적용)
+            // 1줄: 날씨 및 기온 (날짜와 동일한 11.5sp, Normal, OpticalWhite 적용)
             Text(
                 text = environmentData.formattedWeatherLine1(),
                 style = TextStyle(
@@ -69,9 +69,9 @@ fun TimemarkOverlay(
                     lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = MutedSilver
+                color = OpticalWhite
             )
-            // 2줄: 바람
+            // 2줄: 바람 (날짜와 동일한 OpticalWhite 적용)
             Text(
                 text = environmentData.formattedWeatherLine2(),
                 style = TextStyle(
@@ -81,9 +81,9 @@ fun TimemarkOverlay(
                     lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = MutedSilver
+                color = OpticalWhite
             )
-            // 3줄: 기압
+            // 3줄: 기압 (날짜와 동일한 OpticalWhite 적용)
             Text(
                 text = environmentData.formattedWeatherLine3(),
                 style = TextStyle(
@@ -93,7 +93,7 @@ fun TimemarkOverlay(
                     lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = MutedSilver
+                color = OpticalWhite
             )
         }
 

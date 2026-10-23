@@ -201,9 +201,9 @@ fun MeasurementOverlay(
             offset = Offset(0f, 2f),
             blurRadius = 6f
         )
-        // 날씨 3줄(10dp 시작 + 3줄 텍스트(16sp*3) + 사이간격 4dp) 아래에 살짝 간격(10dp) 추가
+        // 날씨 3줄(10dp 시작 + 3줄 텍스트(16sp*3) + 사이간격 4dp) 아래에 여유 있는 간격(24dp) 추가
         val weatherBlockHeight = with(density) { (48.sp).toDp() } + 14.dp
-        val topPadding = if (hasWeatherAbove) weatherBlockHeight + 10.dp else 10.dp
+        val topPadding = if (hasWeatherAbove) weatherBlockHeight + 24.dp else 10.dp
 
         Column(
             modifier = Modifier
@@ -212,7 +212,7 @@ fun MeasurementOverlay(
                 .alpha(if (isDragging) 0.35f else 1.0f),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // 4줄: 길이 (하단 주소와 동일한 11.5sp, Normal, MutedSilver)
+            // 4줄: 길이 (날짜와 동일한 OpticalWhite 적용)
             Text(
                 text = "길이 ${measurement.lengthCm}cm",
                 style = TextStyle(
@@ -222,10 +222,10 @@ fun MeasurementOverlay(
                     lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = MutedSilver
+                color = OpticalWhite
             )
 
-            // 5줄: 무게
+            // 5줄: 무게 (날짜와 동일한 OpticalWhite 적용)
             Text(
                 text = "무게 ${measurement.weightG}g",
                 style = TextStyle(
@@ -235,7 +235,7 @@ fun MeasurementOverlay(
                     lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = MutedSilver
+                color = OpticalWhite
             )
         }
     }

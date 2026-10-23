@@ -49,10 +49,10 @@ object HighResCanvasCompositor {
         val scaleDp = width / validContainerWidth
         val scaleFont = scaleDp * fontScale
 
-        val hasMeasurement = measurement != null && measurement.isBassDetected
+        val hasMeasurement = measurement != null && (measurement.isBassDetected || measurement.isManualFallback)
         val hasWeather = !isImportedPhoto
 
-        // 2. 계측 가이드라인 및 스펙 뱃지 드로잉 (배스 감지 시에만 합성)
+        // 2. 계측 가이드라인 및 스펙 뱃지 드로잉 (배스 감지 또는 직접 계측 시 합성)
         if (hasMeasurement) {
             drawMeasurementHUD(canvas, width, height, scaleDp, scaleFont, measurement!!, hasWeather)
         }
@@ -123,20 +123,20 @@ object HighResCanvasCompositor {
 
         // 좌상단(TopLeft) 스펙 텍스트 (날씨 3줄 아래 살짝 간격을 띄워서 배치, 11.5sp, Normal, MutedSilver)
         val badgeLeft = 12f * scaleDp
-        val lineHeight = 16f * scaleFont
+        val lineHeight = (16f * scaleFont) + (2f * scaleDp)
         val wTop = 10f * scaleDp
 
         val specPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_MUTED_SILVER)
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
             textSize = 11.5f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT
             setShadowLayer(6f * scaleDp, 0f, 2f * scaleDp, Color.argb(220, 0, 0, 0))
         }
 
-        // hasWeatherAbove인 경우: 날씨 3줄 아래에 살짝 간격(10dp) 추가
+        // hasWeatherAbove인 경우: 날씨 3줄 아래에 여유 있는 간격(24dp) 추가
         val y1 = if (hasWeatherAbove) {
-            wTop + (13f * scaleFont) + (lineHeight * 3) + (10f * scaleDp)
+            wTop + (13f * scaleFont) + (lineHeight * 3) + (24f * scaleDp)
         } else {
             wTop + (13f * scaleFont)
         }
@@ -155,17 +155,17 @@ object HighResCanvasCompositor {
         val marginH = 16f * scaleDp
         val marginB = 14f * scaleDp
 
-        // 0. 좌측 상단 날씨 3줄 정보 (하단 주소와 동일한 11.5sp, Normal, MutedSilver)
+        // 0. 좌측 상단 날씨 3줄 정보 (날짜와 동일한 11.5sp, Normal, OpticalWhite 적용)
         val wLine1 = env.formattedWeatherLine1()
         val wLine2 = env.formattedWeatherLine2()
         val wLine3 = env.formattedWeatherLine3()
 
         val wLeft = 12f * scaleDp
         val wTop = 10f * scaleDp
-        val lineHeight = 16f * scaleFont
+        val lineHeight = (16f * scaleFont) + (2f * scaleDp)
 
         val wPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_MUTED_SILVER)
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
             textSize = 11.5f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT
