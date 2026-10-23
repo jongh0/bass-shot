@@ -122,11 +122,18 @@ fun BassShotScreen(
                 }
             }
 
-            // 2. 중앙 3:4 고정 뷰파인더 컨테이너
+            // 2. 중앙 뷰파인더 컨테이너 (불러온 사진의 경우 원본 사진 종횡비에 맞추어 캘리퍼스 1:1 매칭)
+            val containerAspectRatio = if (uiState.isImportedPhoto && uiState.capturedOriginalBitmap != null) {
+                val bmp = uiState.capturedOriginalBitmap!!
+                (bmp.width.toFloat() / bmp.height.toFloat()).coerceIn(0.4f, 1.8f)
+            } else {
+                3f / 4f
+            }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .aspectRatio(3f / 4f)
+                    .aspectRatio(containerAspectRatio)
                     .background(Color.Black)
             ) {
                 when (uiState.appState) {
@@ -170,11 +177,13 @@ fun BassShotScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
-                        // 실시간 타임마크
-                        TimemarkOverlay(
-                            environmentData = uiState.environmentData,
-                            modifier = Modifier.align(Alignment.BottomStart)
-                        )
+                        // 실시간 타임마크 (갤러리에서 불러온 사진이 아닐 때만 표시)
+                        if (!uiState.isImportedPhoto) {
+                            TimemarkOverlay(
+                                environmentData = uiState.environmentData,
+                                modifier = Modifier.align(Alignment.BottomStart)
+                            )
+                        }
                         // AI 분석 중 로딩 HUD
                         Box(
                             modifier = Modifier

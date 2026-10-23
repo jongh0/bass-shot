@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +53,8 @@ fun MeasurementOverlay(
 ) {
     val density = LocalDensity.current
     var activeTarget by remember { mutableStateOf(DragTarget.NONE) }
+    val currentMeasurement by rememberUpdatedState(measurement)
+    val currentOnUpdated by rememberUpdatedState(onMeasurementUpdated)
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val widthPx = constraints.maxWidth.toFloat()
@@ -61,11 +64,15 @@ fun MeasurementOverlay(
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .pointerInput(measurement) {
+                .pointerInput(Unit) {
                     awaitEachGesture {
                         val down = awaitFirstDown(requireUnconsumed = false)
-                        val snoutPx = Offset(measurement.snoutPoint.x * widthPx, measurement.snoutPoint.y * heightPx)
-                        val tailPx = Offset(measurement.tailPoint.x * widthPx, measurement.tailPoint.y * heightPx)
+                        val initialModel = currentMeasurement
+                        var curSnout = initialModel.snoutPoint
+                        var curTail = initialModel.tailPoint
+
+                        val snoutPx = Offset(curSnout.x * widthPx, curSnout.y * heightPx)
+                        val tailPx = Offset(curTail.x * widthPx, curTail.y * heightPx)
 
                         val dSnout = hypot(down.position.x - snoutPx.x, down.position.y - snoutPx.y)
                         val dTail = hypot(down.position.x - tailPx.x, down.position.y - tailPx.y)
@@ -93,26 +100,26 @@ fun MeasurementOverlay(
 
                                     when (target) {
                                         DragTarget.SNOUT -> {
-                                            val newP = NormalizedPoint(
-                                                (measurement.snoutPoint.x + dxRatio).coerceIn(0.01f, 0.99f),
-                                                (measurement.snoutPoint.y + dyRatio).coerceIn(0.01f, 0.99f)
+                                            curSnout = NormalizedPoint(
+                                                (curSnout.x + dxRatio).coerceIn(0.01f, 0.99f),
+                                                (curSnout.y + dyRatio).coerceIn(0.01f, 0.99f)
                                             )
                                             val updated = FishMeasurementCalculator.recalculateOnDrag(
-                                                current = measurement,
-                                                newSnout = newP
+                                                current = currentMeasurement,
+                                                newSnout = curSnout
                                             )
-                                            onMeasurementUpdated(updated)
+                                            currentOnUpdated(updated)
                                         }
                                         DragTarget.TAIL -> {
-                                            val newP = NormalizedPoint(
-                                                (measurement.tailPoint.x + dxRatio).coerceIn(0.01f, 0.99f),
-                                                (measurement.tailPoint.y + dyRatio).coerceIn(0.01f, 0.99f)
+                                            curTail = NormalizedPoint(
+                                                (curTail.x + dxRatio).coerceIn(0.01f, 0.99f),
+                                                (curTail.y + dyRatio).coerceIn(0.01f, 0.99f)
                                             )
                                             val updated = FishMeasurementCalculator.recalculateOnDrag(
-                                                current = measurement,
-                                                newTail = newP
+                                                current = currentMeasurement,
+                                                newTail = curTail
                                             )
-                                            onMeasurementUpdated(updated)
+                                            currentOnUpdated(updated)
                                         }
                                         DragTarget.NONE -> {}
                                     }

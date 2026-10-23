@@ -104,16 +104,16 @@ class GeminiAnalysisDataSource {
             """.trimIndent()
 
             runCatching {
-                withTimeout(20_000L) {
+                withTimeout(35_000L) {
                     val responseText = try {
-                        createModel("gemini-3.8-flash").generateContent(
+                        createModel("gemini-3.5-flash").generateContent(
                             content {
                                 image(resizedBitmap)
                                 text(prompt)
                             }
                         ).text
                     } catch (e: Exception) {
-                        createModel("gemini-flash-latest").generateContent(
+                        createModel("gemini-3.5-flash-lite").generateContent(
                             content {
                                 image(resizedBitmap)
                                 text(prompt)

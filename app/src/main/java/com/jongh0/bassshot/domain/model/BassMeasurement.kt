@@ -9,9 +9,11 @@ data class NormalizedPoint(
     val y: Float = 0.5f
 ) {
     fun clamped(minX: Float = 0.03f, maxX: Float = 0.97f, minY: Float = 0.03f, maxY: Float = 0.97f): NormalizedPoint {
+        val normX = if (x > 1.0f) x / 1000f else x
+        val normY = if (y > 1.0f) y / 1000f else y
         return NormalizedPoint(
-            x = x.coerceIn(minX, maxX),
-            y = y.coerceIn(minY, maxY)
+            x = normX.coerceIn(minX, maxX),
+            y = normY.coerceIn(minY, maxY)
         )
     }
 }

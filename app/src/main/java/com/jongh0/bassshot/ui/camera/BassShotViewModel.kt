@@ -235,11 +235,15 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                 // 5. 기본 결과로 DCIM 저장
                 saveCurrentResult()
             } catch (e: Exception) {
+                val photoAspect = _uiState.value.capturedOriginalBitmap?.let { 
+                    it.width.toFloat() / it.height.toFloat() 
+                } ?: (3f / 4f)
                 _uiState.update { current ->
                     current.copy(
-                        appState = AppState.CAMERA_PREVIEW,
+                        appState = AppState.RESULT_SAVED,
                         isAnalyzing = false,
-                        errorMessage = "사진 불러오기 중 오류가 발생했습니다: ${e.localizedMessage}"
+                        measurement = FishMeasurementCalculator.createManualFallback(photoAspect),
+                        errorMessage = "AI 분석에 실패했습니다. 직접 계측을 이용해주세요: ${e.localizedMessage}"
                     )
                 }
             }
@@ -300,8 +304,11 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
      * 사용자가 수동 계측 모드를 활성화한 경우
      */
     fun enableManualMeasurement() {
+        val aspect = _uiState.value.capturedOriginalBitmap?.let {
+            it.width.toFloat() / it.height.toFloat()
+        } ?: (3f / 4f)
         _uiState.update { current ->
-            val fallback = current.measurement ?: FishMeasurementCalculator.createManualFallback(3f / 4f)
+            val fallback = current.measurement ?: FishMeasurementCalculator.createManualFallback(aspect)
             current.copy(
                 isManualMeasurementEnabled = true,
                 measurement = fallback.copy(isBassDetected = true, isManualFallback = true)
