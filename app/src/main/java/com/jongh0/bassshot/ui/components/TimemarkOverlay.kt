@@ -31,7 +31,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.EnvironmentData
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
 import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.TitaniumSilver
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.WarmGraphite
 
@@ -47,101 +50,138 @@ fun TimemarkOverlay(
         blurRadius = 6f
     )
 
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Bottom
-    ) {
-        // 좌측 4단 타임마크 정보 블록
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.Bottom
+    Box(modifier = modifier.fillMaxSize()) {
+        // 1. 우상단 날씨 3줄 정보 블록 (날씨/기온, 바람, 기압 - 잘림 방지 및 고시인성)
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 16.dp, end = 16.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0x9916171B))
+                .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(10.dp))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
-            // 1. 시간 (Tall Condensed 50sp)
-            Text(
-                text = environmentData.timeFormatted,
-                style = TextStyle(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 50.sp,
-                    lineHeight = 50.sp,
-                    letterSpacing = (-0.03).sp,
-                    fontFeatureSettings = "tnum",
-                    shadow = textShadow
-                ),
-                color = MutedSilver
-            )
-
-            Spacer(modifier = Modifier.height(3.dp))
-
-            // 2. 날짜 및 요일 (예: 2026년 10월 21일 (금요일))
-            val dateAndDay = environmentData.formattedDateAndDayLine()
-            if (dateAndDay.isNotEmpty()) {
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(3.dp)
+            ) {
+                // 1줄: 날씨 및 기온
                 Text(
-                    text = dateAndDay,
+                    text = environmentData.formattedWeatherLine1(),
                     style = TextStyle(
                         fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 14.5.sp,
-                        letterSpacing = (-0.01).sp,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
                         shadow = textShadow
                     ),
                     color = OpticalWhite
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                // 2줄: 바람
+                Text(
+                    text = environmentData.formattedWeatherLine2(),
+                    style = TextStyle(
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.5.sp,
+                        shadow = textShadow
+                    ),
+                    color = TitaniumSilver
+                )
+                // 3줄: 기압
+                Text(
+                    text = environmentData.formattedWeatherLine3(),
+                    style = TextStyle(
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Medium,
+                        fontSize = 11.5.sp,
+                        shadow = textShadow
+                    ),
+                    color = TitaniumSilver
+                )
             }
-
-            // 3. 주소 단독 줄 (긴 주소도 잘리지 않도록 단독 배치 및 최대 2줄 래핑)
-            Text(
-                text = environmentData.formattedAddressOnly(),
-                style = TextStyle(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 12.5.sp,
-                    lineHeight = 16.sp,
-                    shadow = textShadow
-                ),
-                color = MutedSilver,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(modifier = Modifier.height(3.dp))
-
-            // 4. 날씨, 기온, 바람, 기압 전용 줄
-            Text(
-                text = environmentData.formattedWeatherOnly(),
-                style = TextStyle(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 11.5.sp,
-                    lineHeight = 15.sp,
-                    shadow = textShadow
-                ),
-                color = WarmGraphite,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
         }
 
-        // 우측: 정적 지도 미니 맵
-        environmentData.staticMapBitmap?.let { mapBitmap ->
-            Spacer(modifier = Modifier.width(12.dp))
-            Box(
-                modifier = Modifier
-                    .size(88.dp)
-                    .shadow(10.dp, RoundedCornerShape(10.dp))
-                    .clip(RoundedCornerShape(10.dp))
-                    .border(1.5.dp, Color.White, RoundedCornerShape(10.dp))
+        // 2. 하단 타임마크 블록 (좌측 시간/날짜/주소, 우측 미니 지도)
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            // 좌측 타임마크 정보 블록
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Bottom
             ) {
-                Image(
-                    bitmap = mapBitmap.asImageBitmap(),
-                    contentDescription = "Fishing Spot Map",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.matchParentSize()
+                // 1. 시간 (Tall Condensed 50sp)
+                Text(
+                    text = environmentData.timeFormatted,
+                    style = TextStyle(
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 50.sp,
+                        lineHeight = 50.sp,
+                        letterSpacing = (-0.03).sp,
+                        fontFeatureSettings = "tnum",
+                        shadow = textShadow
+                    ),
+                    color = MutedSilver
                 )
+
+                Spacer(modifier = Modifier.height(3.dp))
+
+                // 2. 날짜 및 요일 (예: 2026년 10월 21일 (금요일))
+                val dateAndDay = environmentData.formattedDateAndDayLine()
+                if (dateAndDay.isNotEmpty()) {
+                    Text(
+                        text = dateAndDay,
+                        style = TextStyle(
+                            fontFamily = FontFamily.SansSerif,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.5.sp,
+                            letterSpacing = (-0.01).sp,
+                            shadow = textShadow
+                        ),
+                        color = OpticalWhite
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                // 3. 주소 단독 줄 (긴 주소도 잘리지 않도록 단독 배치 및 최대 2줄 래핑)
+                Text(
+                    text = environmentData.formattedAddressOnly(),
+                    style = TextStyle(
+                        fontFamily = FontFamily.SansSerif,
+                        fontWeight = FontWeight.Normal,
+                        fontSize = 12.5.sp,
+                        lineHeight = 16.sp,
+                        shadow = textShadow
+                    ),
+                    color = MutedSilver,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+
+            // 우측: 정적 지도 미니 맵
+            environmentData.staticMapBitmap?.let { mapBitmap ->
+                Spacer(modifier = Modifier.width(12.dp))
+                Box(
+                    modifier = Modifier
+                        .size(88.dp)
+                        .shadow(10.dp, RoundedCornerShape(10.dp))
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(1.5.dp, Color.White, RoundedCornerShape(10.dp))
+                ) {
+                    Image(
+                        bitmap = mapBitmap.asImageBitmap(),
+                        contentDescription = "Fishing Spot Map",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.matchParentSize()
+                    )
+                }
             }
         }
     }

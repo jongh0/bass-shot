@@ -103,28 +103,38 @@ object HighResCanvasCompositor {
         canvas.drawLine(tailX - jawHalfWidth, tailY, tailX + jawHalfWidth, tailY, jawShadow)
         canvas.drawLine(tailX - jawHalfWidth, tailY, tailX + jawHalfWidth, tailY, jawPaint)
 
-        // 좌상(TopLeft) 큼직하고 살짝 투명한 스펙 뱃지 그리기 (체고 제외)
-        val badgeText = "${measurement.lengthCm}cm  ·  ${measurement.weightG}g"
+        // 좌상(TopLeft) 큼직하고 살짝 투명한 스펙 뱃지 그리기 (길이, 무게, 체고 1줄씩)
+        val line1 = "길이  ${measurement.lengthCm} cm"
+        val line2 = "무게  ${measurement.weightG} g"
+        val line3 = "체고  ${measurement.girthCm} cm"
+
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_OPTICAL_WHITE)
-            textSize = 34f * scale
+            textSize = 28f * scale
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             setShadowLayer(5f * scale, 0f, 2f * scale, Color.argb(200, 0, 0, 0))
         }
 
-        val textBounds = Rect()
-        textPaint.getTextBounds(badgeText, 0, badgeText.length, textBounds)
-        val badgePaddingH = 30f * scale
-        val badgePaddingV = 16f * scale
-        val badgeWidth = textBounds.width() + badgePaddingH * 2
-        val badgeHeight = textBounds.height() + badgePaddingV * 2
+        val b1 = Rect()
+        val b2 = Rect()
+        val b3 = Rect()
+        textPaint.getTextBounds(line1, 0, line1.length, b1)
+        textPaint.getTextBounds(line2, 0, line2.length, b2)
+        textPaint.getTextBounds(line3, 0, line3.length, b3)
+
+        val maxTextW = maxOf(b1.width(), b2.width(), b3.width())
+        val lineHeight = 36f * scale
+        val badgePaddingH = 28f * scale
+        val badgePaddingV = 20f * scale
+        val badgeWidth = maxTextW + badgePaddingH * 2
+        val badgeHeight = (lineHeight * 2) + b1.height() + (badgePaddingV * 2)
 
         // 좌측 상단 모서리에 배치
         val badgeLeft = 44f * scale
         val badgeTop = 44f * scale
         val badgeRect = RectF(badgeLeft, badgeTop, badgeLeft + badgeWidth, badgeTop + badgeHeight)
 
-        // 살짝 투명한 배경 (약 60% 불투명도)
+        // 살짝 투명한 배경 (약 65% 불투명도)
         val badgeBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(165, 16, 17, 21)
             style = Paint.Style.FILL
@@ -138,8 +148,10 @@ object HighResCanvasCompositor {
         canvas.drawRoundRect(badgeRect, 16f * scale, 16f * scale, badgeBgPaint)
         canvas.drawRoundRect(badgeRect, 16f * scale, 16f * scale, badgeBorderPaint)
 
-        val textY = badgeTop + badgePaddingV + textBounds.height() - (textBounds.bottom / 2f)
-        canvas.drawText(badgeText, badgeLeft + badgePaddingH, textY, textPaint)
+        val tY1 = badgeTop + badgePaddingV + b1.height()
+        canvas.drawText(line1, badgeLeft + badgePaddingH, tY1, textPaint)
+        canvas.drawText(line2, badgeLeft + badgePaddingH, tY1 + lineHeight, textPaint)
+        canvas.drawText(line3, badgeLeft + badgePaddingH, tY1 + lineHeight * 2, textPaint)
     }
 
     private fun drawTimemarkHUD(
@@ -152,6 +164,63 @@ object HighResCanvasCompositor {
         val marginH = 44f * scale
         val marginB = 44f * scale
 
+        // 0. 우측 상단 날씨 3줄 정보 뱃지 (날씨/기온, 바람, 기압)
+        val wLine1 = env.formattedWeatherLine1()
+        val wLine2 = env.formattedWeatherLine2()
+        val wLine3 = env.formattedWeatherLine3()
+
+        val wPaintBold = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
+            textSize = 24f * scale
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+            textAlign = Paint.Align.RIGHT
+            setShadowLayer(5f * scale, 0f, 2f * scale, Color.argb(200, 0, 0, 0))
+        }
+        val wPaintNormal = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor(COLOR_TITANIUM_SILVER)
+            textSize = 22f * scale
+            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
+            textAlign = Paint.Align.RIGHT
+            setShadowLayer(5f * scale, 0f, 2f * scale, Color.argb(200, 0, 0, 0))
+        }
+
+        val wb1 = Rect()
+        val wb2 = Rect()
+        val wb3 = Rect()
+        wPaintBold.getTextBounds(wLine1, 0, wLine1.length, wb1)
+        wPaintNormal.getTextBounds(wLine2, 0, wLine2.length, wb2)
+        wPaintNormal.getTextBounds(wLine3, 0, wLine3.length, wb3)
+
+        val maxWWidth = maxOf(wb1.width(), wb2.width(), wb3.width())
+        val wLineHeight = 30f * scale
+        val wPadH = 24f * scale
+        val wPadV = 16f * scale
+        val wBoxW = maxWWidth + wPadH * 2
+        val wBoxH = (wLineHeight * 2) + wb1.height() + wPadV * 2
+
+        val wBoxRight = width - (44f * scale)
+        val wBoxLeft = wBoxRight - wBoxW
+        val wBoxTop = 44f * scale
+        val wBoxBottom = wBoxTop + wBoxH
+
+        val wBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(165, 16, 17, 21)
+            style = Paint.Style.FILL
+        }
+        val wBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.argb(55, 255, 255, 255)
+            strokeWidth = 1.5f * scale
+            style = Paint.Style.STROKE
+        }
+
+        canvas.drawRoundRect(RectF(wBoxLeft, wBoxTop, wBoxRight, wBoxBottom), 14f * scale, 14f * scale, wBgPaint)
+        canvas.drawRoundRect(RectF(wBoxLeft, wBoxTop, wBoxRight, wBoxBottom), 14f * scale, 14f * scale, wBorderPaint)
+
+        val wtY1 = wBoxTop + wPadV + wb1.height()
+        canvas.drawText(wLine1, wBoxRight - wPadH, wtY1, wPaintBold)
+        canvas.drawText(wLine2, wBoxRight - wPadH, wtY1 + wLineHeight, wPaintNormal)
+        canvas.drawText(wLine3, wBoxRight - wPadH, wtY1 + wLineHeight * 2, wPaintNormal)
+
         // 우측 미니 지도 크기 및 텍스트 허용 너비 계산
         val hasMap = env.staticMapBitmap != null
         val mapSize = if (hasMap) 220f * scale else 0f
@@ -161,33 +230,30 @@ object HighResCanvasCompositor {
             width - (marginH * 2)
         }
 
-        // 4. 날씨, 기온, 바람, 기압 전용 라인
-        val weatherText = env.formattedWeatherOnly()
-        val weatherPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_WARM_GRAPHITE)
-            textSize = 25f * scale
-            typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            setShadowLayer(8f * scale, 0f, 3f * scale, Color.argb(220, 0, 0, 0))
-        }
-        val line4Y = height - marginB
-        canvas.drawText(weatherText, marginH, line4Y, weatherPaint)
-
-        // 3. 주소 전용 라인 (길어도 지도와 겹치지 않도록 너비 제한)
+        // 3. 주소 전용 라인 (길어지면 자동으로 2줄 래핑)
         val rawAddress = env.formattedAddressOnly()
-        val addressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        val addressPaint = android.text.TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_TITANIUM_SILVER)
             textSize = 28f * scale
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             setShadowLayer(8f * scale, 0f, 3f * scale, Color.argb(220, 0, 0, 0))
         }
-        val ellipAddress = TextUtils.ellipsize(
-            rawAddress,
-            android.text.TextPaint(addressPaint),
-            maxTextWidth,
-            TextUtils.TruncateAt.END
-        ).toString()
-        val line3Y = line4Y - (36f * scale)
-        canvas.drawText(ellipAddress, marginH, line3Y, addressPaint)
+
+        val addressLayout = android.text.StaticLayout.Builder.obtain(
+            rawAddress, 0, rawAddress.length, addressPaint, maxTextWidth.toInt().coerceAtLeast(100)
+        )
+            .setAlignment(android.text.Layout.Alignment.ALIGN_NORMAL)
+            .setMaxLines(2)
+            .setEllipsize(TextUtils.TruncateAt.END)
+            .build()
+
+        val addressHeight = addressLayout.height.toFloat()
+        val addressTopY = height - marginB - addressHeight
+
+        canvas.save()
+        canvas.translate(marginH, addressTopY)
+        addressLayout.draw(canvas)
+        canvas.restore()
 
         // 2. 날짜 및 요일 라인 (예: 2026년 10월 21일 (금요일))
         val dateAndDayText = env.formattedDateAndDayLine()
@@ -197,7 +263,7 @@ object HighResCanvasCompositor {
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             setShadowLayer(8f * scale, 0f, 3f * scale, Color.argb(220, 0, 0, 0))
         }
-        val line2Y = line3Y - (40f * scale)
+        val line2Y = addressTopY - (16f * scale)
         if (dateAndDayText.isNotEmpty()) {
             canvas.drawText(dateAndDayText, marginH, line2Y, datePaint)
         }

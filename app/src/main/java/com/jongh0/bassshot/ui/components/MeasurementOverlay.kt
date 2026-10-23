@@ -5,11 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +43,7 @@ import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.OpticalWhiteGlow
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
 import com.jongh0.bassshot.ui.theme.TitaniumSilver
+import com.jongh0.bassshot.ui.theme.WarmGraphite
 import kotlin.math.hypot
 
 private enum class DragTarget {
@@ -184,7 +189,7 @@ fun MeasurementOverlay(
             drawPrecisionHandle(tailPx, OpticalWhite, activeTarget == DragTarget.TAIL, handleRadius)
         }
 
-        // 4. 좌상(TopStart) 큼직하고 살짝 투명한 스펙 뱃지 (옵티컬 화이트 / 티타늄 실버)
+        // 4. 좌상(TopStart) 큼직하고 살짝 투명한 스펙 뱃지 (길이, 무게, 체고 1줄씩)
         val isDragging = activeTarget != DragTarget.NONE
         Box(
             modifier = Modifier
@@ -193,50 +198,83 @@ fun MeasurementOverlay(
                 .alpha(if (isDragging) 0.35f else 1.0f)
                 .background(Color(0x9916171B), RoundedCornerShape(12.dp))
                 .border(1.dp, SubtleTitanium, RoundedCornerShape(12.dp))
-                .padding(horizontal = 14.dp, vertical = 8.dp)
+                .padding(horizontal = 14.dp, vertical = 10.dp)
         ) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                // 길이
-                Text(
-                    text = "${measurement.lengthCm}",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = OpticalWhite,
-                    lineHeight = 22.sp
-                )
-                Text(
-                    text = "cm",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TitaniumSilver,
-                    lineHeight = 18.sp,
-                    modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                // 1줄: 길이
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = "길이",
+                        fontSize = 12.sp,
+                        color = WarmGraphite,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.width(30.dp)
+                    )
+                    Text(
+                        text = "${measurement.lengthCm}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = OpticalWhite
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = "cm",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TitaniumSilver,
+                        modifier = Modifier.padding(bottom = 1.dp)
+                    )
+                }
 
-                Text(
-                    text = "  ·  ",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal,
-                    color = Color(0x80FFFFFF),
-                    modifier = Modifier.padding(bottom = 2.dp)
-                )
+                // 2줄: 무게
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = "무게",
+                        fontSize = 12.sp,
+                        color = WarmGraphite,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.width(30.dp)
+                    )
+                    Text(
+                        text = "${measurement.weightG}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = OpticalWhite
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = "g",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TitaniumSilver,
+                        modifier = Modifier.padding(bottom = 1.dp)
+                    )
+                }
 
-                // 무게
-                Text(
-                    text = "${measurement.weightG}",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = OpticalWhite,
-                    lineHeight = 22.sp
-                )
-                Text(
-                    text = "g",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TitaniumSilver,
-                    lineHeight = 18.sp,
-                    modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
-                )
+                // 3줄: 체고
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = "체고",
+                        fontSize = 12.sp,
+                        color = WarmGraphite,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.width(30.dp)
+                    )
+                    Text(
+                        text = "${measurement.girthCm}",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = OpticalWhite
+                    )
+                    Spacer(modifier = Modifier.width(3.dp))
+                    Text(
+                        text = "cm",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TitaniumSilver,
+                        modifier = Modifier.padding(bottom = 1.dp)
+                    )
+                }
             }
         }
     }

@@ -13,17 +13,17 @@ object ShutterSoundPlayer {
     private var pcmData: ShortArray? = null
 
     init {
-        // 부드럽고 절제된 기계식 카메라 셔터 사운드 (40ms, 귀가 아프지 않은 30% 감쇠 볼륨)
-        val durationMs = 40
+        // 부드럽고 경쾌한 기계식 카메라 셔터 사운드 (45ms, 적당히 선명한 55% 볼륨)
+        val durationMs = 45
         val numSamples = (SAMPLE_RATE * durationMs / 1000)
         val buffer = ShortArray(numSamples)
         for (i in 0 until numSamples) {
             val t = i.toDouble() / SAMPLE_RATE
-            // 900Hz의 부드러운 감쇠 클릭 파형
-            val envelope = exp(-t * 120.0)
-            val freq = 950.0 - (t * 3000.0)
+            // 950Hz의 부드러운 감쇠 클릭 파형
+            val envelope = exp(-t * 90.0)
+            val freq = 980.0 - (t * 2800.0)
             val wave = sin(2.0 * PI * freq * t)
-            val sample = (wave * envelope * Short.MAX_VALUE * 0.30).toInt()
+            val sample = (wave * envelope * Short.MAX_VALUE * 0.55).toInt()
             buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
         }
         pcmData = buffer

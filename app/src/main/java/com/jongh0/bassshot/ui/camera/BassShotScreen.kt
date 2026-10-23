@@ -40,6 +40,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -160,10 +161,10 @@ fun BassShotScreen(
                             drawLine(gridColor, Offset(0f, h * 2f / 3f), Offset(w, h * 2f / 3f), stroke)
                         }
 
-                        // 실시간 타임마크 오버레이
+                        // 실시간 타임마크 및 날씨 오버레이
                         TimemarkOverlay(
                             environmentData = uiState.environmentData,
-                            modifier = Modifier.align(Alignment.BottomStart)
+                            modifier = Modifier.fillMaxSize()
                         )
                     }
 
@@ -177,11 +178,11 @@ fun BassShotScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
-                        // 실시간 타임마크 (갤러리에서 불러온 사진이 아닐 때만 표시)
+                        // 실시간 타임마크 및 날씨 오버레이 (갤러리에서 불러온 사진이 아닐 때만 표시)
                         if (!uiState.isImportedPhoto) {
                             TimemarkOverlay(
                                 environmentData = uiState.environmentData,
-                                modifier = Modifier.align(Alignment.BottomStart)
+                                modifier = Modifier.fillMaxSize()
                             )
                         }
                         // AI 분석 중 로딩 HUD
@@ -213,12 +214,6 @@ fun BassShotScreen(
                                     fontWeight = FontWeight.Bold,
                                     letterSpacing = 0.8.sp
                                 )
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(
-                                    text = "배스를 물에 놓아주셔도 좋습니다",
-                                    color = WarmGraphite,
-                                    fontSize = 11.sp
-                                )
                             }
                         }
                     }
@@ -249,11 +244,11 @@ fun BassShotScreen(
                             }
                         }
 
-                        // 하단 타임마크 오버레이 (갤러리에서 불러온 사진이 아닐 때만 표시)
+                        // 타임마크 및 날씨 오버레이 (갤러리에서 불러온 사진이 아닐 때만 표시)
                         if (!uiState.isImportedPhoto) {
                             TimemarkOverlay(
                                 environmentData = uiState.environmentData,
-                                modifier = Modifier.align(Alignment.BottomStart)
+                                modifier = Modifier.fillMaxSize()
                             )
                         }
                     }
@@ -318,12 +313,46 @@ fun BassShotScreen(
                     }
 
                     AppState.ANALYZING -> {
-                        Text(
-                            text = "배스 길이 및 무게 분석 중...",
-                            color = WarmGraphite,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 36.dp)
+                                .alpha(0.35f),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // 1. 좌측 갤러리 불러오기 버튼 (딤처리 비활성)
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(AnodizedCharcoal)
+                                    .border(1.dp, SubtleTitanium, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.PhotoLibrary,
+                                    contentDescription = null,
+                                    tint = TitaniumSilver,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+
+                            // 2. 중앙 셔터 버튼 (딤처리 비활성)
+                            Box(
+                                modifier = Modifier
+                                    .size(76.dp)
+                                    .clip(CircleShape)
+                                    .background(Color(0x33FFFFFF))
+                                    .border(2.dp, OpticalWhite, CircleShape)
+                                    .padding(6.dp)
+                                    .clip(CircleShape)
+                                    .background(OpticalWhite)
+                            )
+
+                            // 3. 우측 스페이서
+                            Spacer(modifier = Modifier.size(48.dp))
+                        }
                     }
 
                     AppState.RESULT_SAVED -> {
@@ -349,9 +378,10 @@ fun BassShotScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = "물고기/손 미인식 (타임마크만 저장됨)",
+                                        text = "물고기/손 미인식",
                                         color = WarmGraphite,
-                                        fontSize = 11.5.sp
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium
                                     )
                                     Row(verticalAlignment = Alignment.CenterVertically) {
                                         Icon(
@@ -406,6 +436,7 @@ fun BassShotScreen(
                                 }
 
                                 // 갤러리 저장 상태 / 보정 완료 저장 버튼
+                                val isManualModified = uiState.isManualMeasurementEnabled
                                 Row(
                                     modifier = Modifier
                                         .weight(1f)
@@ -424,7 +455,11 @@ fun BassShotScreen(
                                     )
                                     Spacer(modifier = Modifier.width(6.dp))
                                     Text(
-                                        text = if (uiState.isSaving) "저장 중..." else "갤러리 저장됨",
+                                        text = when {
+                                            uiState.isSaving -> "저장 중..."
+                                            isManualModified -> "수정본 저장"
+                                            else -> "갤러리 자동 저장됨"
+                                        },
                                         color = ObsidianBlack,
                                         fontSize = 13.5.sp,
                                         fontWeight = FontWeight.Bold

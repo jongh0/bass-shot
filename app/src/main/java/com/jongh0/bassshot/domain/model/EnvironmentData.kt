@@ -40,6 +40,29 @@ data class EnvironmentData(
     }
 
     /**
+     * 우상단 날씨 3줄 표시 전용: 1줄 날씨/기온
+     */
+    fun formattedWeatherLine1(): String {
+        val desc = weatherDescription?.takeIf { it.isNotBlank() } ?: "날씨 확인 중"
+        val temp = if (tempCelsius != null) " ${tempCelsius.toInt()}°C" else ""
+        return "$desc$temp"
+    }
+
+    /**
+     * 우상단 날씨 3줄 표시 전용: 2줄 바람
+     */
+    fun formattedWeatherLine2(): String {
+        return if (windSpeedMps != null) "바람 ${String.format(java.util.Locale.US, "%.1f", windSpeedMps)}m/s" else "바람 -- m/s"
+    }
+
+    /**
+     * 우상단 날씨 3줄 표시 전용: 3줄 기압 (절대 잘리지 않도록 단독 라인)
+     */
+    fun formattedWeatherLine3(): String {
+        return if (pressureHpa != null) "기압 ${String.format(java.util.Locale.US, "%.1f", pressureHpa)}hPa" else "기압 -- hPa"
+    }
+
+    /**
      * 날씨, 기온, 바람, 기압 전용 라인: "맑음 18°C  ·  바람 1.2m/s  ·  1013hPa"
      */
     fun formattedWeatherOnly(): String {
