@@ -9,6 +9,8 @@ jobs:
   build-and-release:
     name: Build & Release APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout Code
@@ -21,14 +23,15 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
       - name: Create local.properties with Secrets
         run: |
+          echo "sdk.dir=$ANDROID_HOME" >> local.properties
           echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" >> local.properties
           echo "WEATHER_API_KEY=${{ secrets.WEATHER_API_KEY }}" >> local.properties
           echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" >> local.properties
+
+      - name: Accept Android SDK Licenses
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Grant Execute Permission to Gradlew
         run: chmod +x gradlew
@@ -39,11 +42,11 @@ jobs:
       - name: Build Release APK
         run: ./gradlew assembleRelease --no-daemon
 
-      - name: Rename APK with Tag Version
+      - name: Prepare Release Artifact
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           mkdir -p release-artifacts
-          cp app/build/outputs/apk/release/app-release-unsigned.apk release-artifacts/BassShot-${VERSION}.apk || cp app/build/outputs/apk/release/*.apk release-artifacts/BassShot-${VERSION}.apk
+          find app/build/outputs/apk/release/ -name "*.apk" -exec cp {} release-artifacts/BassShot-${VERSION}.apk \;
 
       - name: Create GitHub Release and Upload APK
         uses: softprops/action-gh-release@v2
