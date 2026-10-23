@@ -27,8 +27,8 @@ android {
         applicationId = "com.jongh0.bassshot"
         minSdk = 26
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 2
+        versionName = "1.0.1"
 
         buildConfigField("String", "GEMINI_API_KEY", "\"${getSecretProperty("GEMINI_API_KEY")}\"")
         buildConfigField("String", "WEATHER_API_KEY", "\"${getSecretProperty("WEATHER_API_KEY")}\"")
@@ -42,6 +42,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("debug") // 설치 가능한 유효한 서명 적용
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
