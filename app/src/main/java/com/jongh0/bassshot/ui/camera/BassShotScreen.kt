@@ -13,8 +13,10 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -76,11 +79,12 @@ fun BassShotScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // 1. 상단 HUD 컨트롤 바
+            // 1. 상단 HUD 컨트롤 바 (상태바/노치 안전 패딩 적용)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                    .statusBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -134,6 +138,23 @@ fun BassShotScreen(
                             cameraController = viewModel.cameraController,
                             modifier = Modifier.fillMaxSize()
                         )
+
+                        // 3x3 촬영 가이드라인 격자 (Timemarker 스타일)
+                        androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
+                            val w = size.width
+                            val h = size.height
+                            val gridColor = Color(0x26FFFFFF) // 15% opacity white
+                            val stroke = 1.dp.toPx()
+
+                            // 세로선 2개
+                            drawLine(gridColor, Offset(w / 3f, 0f), Offset(w / 3f, h), stroke)
+                            drawLine(gridColor, Offset(w * 2f / 3f, 0f), Offset(w * 2f / 3f, h), stroke)
+
+                            // 가로선 2개
+                            drawLine(gridColor, Offset(0f, h / 3f), Offset(w, h / 3f), stroke)
+                            drawLine(gridColor, Offset(0f, h * 2f / 3f), Offset(w, h * 2f / 3f), stroke)
+                        }
+
                         // 실시간 타임마크 오버레이
                         TimemarkOverlay(
                             environmentData = uiState.environmentData,
@@ -225,11 +246,12 @@ fun BassShotScreen(
                 }
             }
 
-            // 3. 하단 액션 컨트롤 바
+            // 3. 하단 액션 컨트롤 바 (내비게이션바 제스처 패딩 적용)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 24.dp, top = 12.dp),
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp, top = 8.dp),
                 contentAlignment = Alignment.Center
             ) {
                 when (uiState.appState) {

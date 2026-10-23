@@ -69,7 +69,8 @@ class EnvironmentRepository(
     }
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.KOREA)
-    private val dateFormat = SimpleDateFormat("yyyy년 M월 d일 EEEE", Locale.KOREA)
+    private val dateFormat = SimpleDateFormat("yyyy년M월d일", Locale.KOREA)
+    private val dayOfWeekFormat = SimpleDateFormat("EEEE", Locale.KOREA)
 
     /**
      * 현재 시간 기준 기본 데이터 생성
@@ -78,7 +79,8 @@ class EnvironmentRepository(
         val now = Date()
         return previous.copy(
             timeFormatted = timeFormat.format(now),
-            dateFormatted = dateFormat.format(now)
+            dateFormatted = dateFormat.format(now),
+            dayOfWeekFormatted = dayOfWeekFormat.format(now)
         )
     }
 
@@ -90,6 +92,7 @@ class EnvironmentRepository(
         val now = Date()
         val timeStr = timeFormat.format(now)
         val dateStr = dateFormat.format(now)
+        val dayOfWeekStr = dayOfWeekFormat.format(now)
 
         if (!hasLocationPermission) {
             // 위치 권한이 없는 경우: 내장 기압계만 확인 후 반환
@@ -97,6 +100,7 @@ class EnvironmentRepository(
             return@coroutineScope EnvironmentData(
                 timeFormatted = timeStr,
                 dateFormatted = dateStr,
+                dayOfWeekFormatted = dayOfWeekStr,
                 pressureHpa = sensorPressure,
                 isFromBarometerSensor = sensorPressure != null
             )
@@ -114,6 +118,7 @@ class EnvironmentRepository(
             return@coroutineScope EnvironmentData(
                 timeFormatted = timeStr,
                 dateFormatted = dateStr,
+                dayOfWeekFormatted = dayOfWeekStr,
                 tempCelsius = cached?.cachedTempCelsius,
                 weatherDescription = cached?.cachedWeatherDesc,
                 pressureHpa = sensorPressure,
@@ -160,6 +165,7 @@ class EnvironmentRepository(
         EnvironmentData(
             timeFormatted = timeStr,
             dateFormatted = dateStr,
+            dayOfWeekFormatted = dayOfWeekStr,
             tempCelsius = temp,
             weatherDescription = weatherDesc,
             windSpeedMps = windSpeed,

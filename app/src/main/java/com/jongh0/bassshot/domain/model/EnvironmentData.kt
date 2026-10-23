@@ -6,8 +6,9 @@ import android.graphics.Bitmap
  * 실시간 카메라 프리뷰 및 최종 캡처본에 오버레이될 환경 데이터
  */
 data class EnvironmentData(
-    val timeFormatted: String = "--:--", // e.g. "14:18"
-    val dateFormatted: String = "", // e.g. "2026년 10월 23일 금요일"
+    val timeFormatted: String = "--:--", // e.g. "13:26"
+    val dateFormatted: String = "", // e.g. "2026년10월23일"
+    val dayOfWeekFormatted: String = "", // e.g. "금요일"
     val tempCelsius: Float? = null, // e.g. 18.0f
     val weatherDescription: String? = null, // e.g. "맑음"
     val windSpeedMps: Float? = null, // e.g. 2.1f
@@ -19,11 +20,14 @@ data class EnvironmentData(
     val longitude: Double? = null
 ) {
     /**
-     * 날씨/기온/바람/기압 한 줄 포맷 텍스트
-     * 오프라인 또는 부분 결측치 발생 시 자연스럽게 존재하는 값만 조합
+     * 주소 및 기상 정보 한 줄/두 줄 조합
      */
-    fun formattedWeatherLine(): String {
+    fun formattedAddressAndWeatherLine(): String {
         val parts = mutableListOf<String>()
+
+        if (!addressKorean.isNullOrBlank()) {
+            parts.add(addressKorean)
+        }
 
         val weatherPart = buildString {
             if (!weatherDescription.isNullOrBlank()) {
@@ -41,10 +45,9 @@ data class EnvironmentData(
         }
 
         if (pressureHpa != null) {
-            val sensorTag = if (isFromBarometerSensor) "" else ""
-            parts.add("${pressureHpa.toInt()}hPa$sensorTag")
+            parts.add("${pressureHpa.toInt()}hPa")
         }
 
-        return if (parts.isEmpty()) "기압 측정 대기 중" else parts.joinToString("  |  ")
+        return if (parts.isEmpty()) "위치 정보 수신 중" else parts.joinToString("  |  ")
     }
 }
