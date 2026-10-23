@@ -1,7 +1,8 @@
 package com.jongh0.bassshot.ui.camera
 
 import android.app.Application
-import android.graphics.Bitmap
+import android.media.MediaActionSound
+import android.net.Uri
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
 import androidx.camera.view.LifecycleCameraController
@@ -17,6 +18,7 @@ import com.jongh0.bassshot.domain.model.AppState
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.BassShotUiState
 import com.jongh0.bassshot.domain.util.BitmapProcessor
+import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
 import com.jongh0.bassshot.domain.util.HighResCanvasCompositor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -27,16 +29,13 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
-class BassShotViewModel(
-    application: Application
-) : AndroidViewModel(application) {
+class BassShotViewModel(application: Application) : AndroidViewModel(application) {
 
     private val userPreferencesRepository = UserPreferencesRepository(application)
-    private val environmentRepository = EnvironmentRepository(application, userPreferencesRepository)
     private val measurementRepository = MeasurementRepository()
+    private val environmentRepository = EnvironmentRepository(application)
     private val mediaStoreRepository = MediaStoreRepository(application)
     private val updateRepository = UpdateRepository(application)
 
@@ -49,9 +48,29 @@ class BassShotViewModel(
 
     private val isCapturing = AtomicBoolean(false)
 
+    // 카메라 셔터 사운드 플레이어
+    private val mediaActionSound = MediaActionSound().apply {
+        load(MediaActionSound.SHUTTER_CLICK)
+    }
+
     init {
         startRealtimeClock()
+        observeUserPreferences()
         checkForAppUpdates()
+    }
+
+    private fun observeUserPreferences() {
+        viewModelScope.launch {
+            userPreferencesRepository.userPreferencesFlow.collect { prefs ->
+                _uiState.update { current ->
+                    current.copy(
+                        isShutterSoundEnabled = prefs.shutterSoundEnabled,
+                        currentGloveWidthCm = prefs.referenceGloveWidthCm,
+                        currentSaveOriginal = prefs.saveOriginalPhoto
+                    )
+                }
+            }
+        }
     }
 
     /**
@@ -88,6 +107,11 @@ class BassShotViewModel(
             return
         }
 
+        // 셔터음 재생 (설정에서 켜져 있을 때만)
+        if (_uiState.value.isShutterSoundEnabled) {
+            mediaActionSound.play(MediaActionSound.SHUTTER_CLICK)
+        }
+
         val executor = ContextCompat.getMainExecutor(getApplication())
         cameraController.takePicture(
             executor,
@@ -100,11 +124,12 @@ class BassShotViewModel(
                                 BitmapProcessor.processImageProxy(proxy)
                             }
 
-                            // 2. 촬영 완료 즉시 화면 정지 (배스를 바로 방생할 수 있도록)
+                            // 2. 촬영 완료 즉시 화면 정지
                             _uiState.update { current ->
                                 current.copy(
                                     appState = AppState.ANALYZING,
                                     capturedOriginalBitmap = fullResBitmap,
+                                    isImportedPhoto = false,
                                     isAnalyzing = true,
                                     errorMessage = null
                                 )
@@ -114,8 +139,7 @@ class BassShotViewModel(
                             val resizedForAi = BitmapProcessor.scaleForGemini(fullResBitmap, 1024)
 
                             // 4. 저장된 장갑 폭 설정 조회
-                            val prefs = userPreferencesRepository.userPreferencesFlow.firstOrNull()
-                            val gloveWidth = prefs?.referenceGloveWidthCm ?: 9.5f
+                            val gloveWidth = _uiState.value.currentGloveWidthCm
 
                             // 5. Gemini AI 분석 요청
                             val measurementResult = measurementRepository.measureBass(
@@ -158,6 +182,75 @@ class BassShotViewModel(
     }
 
     /**
+     * 기촬영된 갤러리 사진 불러오기 후 AI 계측 분석 진행
+     */
+    fun processImportedPhoto(uri: Uri) {
+        viewModelScope.launch(Dispatchers.Default) {
+            try {
+                _uiState.update { current ->
+                    current.copy(
+                        appState = AppState.ANALYZING,
+                        isImportedPhoto = true,
+                        isAnalyzing = true,
+                        errorMessage = null
+                    )
+                }
+
+                // 1. 갤러리 비트맵 로드 및 EXIF 메타데이터 추출
+                val imported = BitmapProcessor.decodeUriWithExif(getApplication(), uri)
+                val fullResBitmap = imported.bitmap
+
+                // 2. 원본 사진의 일시/위치가 있으면 환경 데이터에 반영
+                if (imported.capturedDateFormatted != null && imported.capturedTimeFormatted != null) {
+                    _uiState.update { current ->
+                        current.copy(
+                            environmentData = current.environmentData.copy(
+                                dateFormatted = imported.capturedDateFormatted,
+                                dayOfWeekFormatted = imported.capturedDayOfWeekFormatted ?: current.environmentData.dayOfWeekFormatted,
+                                timeFormatted = imported.capturedTimeFormatted,
+                                latitude = imported.latitude ?: current.environmentData.latitude,
+                                longitude = imported.longitude ?: current.environmentData.longitude
+                            )
+                        )
+                    }
+                }
+
+                _uiState.update { it.copy(capturedOriginalBitmap = fullResBitmap) }
+
+                // 3. Gemini 전송용 1024px 스케일링
+                val resizedForAi = BitmapProcessor.scaleForGemini(fullResBitmap, 1024)
+                val gloveWidth = _uiState.value.currentGloveWidthCm
+
+                // 4. Gemini AI 분석 실행
+                val measurementResult = measurementRepository.measureBass(
+                    resizedBitmap = resizedForAi,
+                    referenceGloveWidthCm = gloveWidth,
+                    imageAspectRatio = 3f / 4f
+                )
+
+                _uiState.update { current ->
+                    current.copy(
+                        appState = AppState.RESULT_SAVED,
+                        measurement = measurementResult,
+                        isAnalyzing = false
+                    )
+                }
+
+                // 5. 기본 결과로 DCIM 저장
+                saveCurrentResult()
+            } catch (e: Exception) {
+                _uiState.update { current ->
+                    current.copy(
+                        appState = AppState.CAMERA_PREVIEW,
+                        isAnalyzing = false,
+                        errorMessage = "사진 불러오기 중 오류가 발생했습니다: ${e.localizedMessage}"
+                    )
+                }
+            }
+        }
+    }
+
+    /**
      * 사용자가 캘리퍼스 가이드라인을 드래그하여 수정한 계측값 반영
      */
     fun onMeasurementUpdated(updated: BassMeasurementUiModel) {
@@ -165,7 +258,7 @@ class BassShotViewModel(
     }
 
     /**
-     * 현재 화면의 최종 결과(타임마크 + 최신 계측선)를 고화질 Canvas로 합성하여 DCIM/BassShot에 저장
+     * 현재 화면의 최종 결과(타임마크 + 최신 계측선 + EXIF 헤더)를 고화질 Canvas로 합성하여 DCIM/BassShot에 저장
      */
     fun saveCurrentResult() {
         val original = _uiState.value.capturedOriginalBitmap ?: return
@@ -179,12 +272,18 @@ class BassShotViewModel(
             val compositeBitmap = HighResCanvasCompositor.composite(original, env, measure)
 
             val prefs = userPreferencesRepository.userPreferencesFlow.firstOrNull()
-            val saveOriginal = prefs?.saveOriginalPhoto ?: false
+            val userSaveOriginalPref = prefs?.saveOriginalPhoto ?: true
+            val isImported = _uiState.value.isImportedPhoto
+
+            // 기촬영된 갤러리 사진을 불러온 경우, 원본이 이미 갤러리에 있으므로 중복 백업 방지
+            val saveOriginal = userSaveOriginalPref && !isImported
 
             val result = mediaStoreRepository.saveCompositeAndOriginalPhotos(
                 compositeBitmap = compositeBitmap,
                 originalBitmap = original,
-                saveOriginalPhoto = saveOriginal
+                saveOriginalPhoto = saveOriginal,
+                environmentData = env,
+                measurement = measure
             )
 
             _uiState.update { current ->
@@ -197,6 +296,20 @@ class BassShotViewModel(
     }
 
     /**
+     * 사용자가 수동 계측 모드를 활성화한 경우
+     */
+    fun enableManualMeasurement() {
+        _uiState.update { current ->
+            val fallback = current.measurement ?: FishMeasurementCalculator.createManualFallback(3f / 4f)
+            current.copy(
+                isManualMeasurementEnabled = true,
+                measurement = fallback.copy(isBassDetected = true, isManualFallback = true)
+            )
+        }
+        saveCurrentResult()
+    }
+
+    /**
      * 다시 촬영 (프리뷰 상태로 리셋)
      */
     fun onRetakeClicked() {
@@ -205,6 +318,8 @@ class BassShotViewModel(
                 appState = AppState.CAMERA_PREVIEW,
                 capturedOriginalBitmap = null,
                 measurement = null,
+                isManualMeasurementEnabled = false,
+                isImportedPhoto = false,
                 isAnalyzing = false,
                 isSaving = false,
                 savedPhotoUriString = null,
@@ -221,10 +336,11 @@ class BassShotViewModel(
         _uiState.update { it.copy(showSettingsDialog = false) }
     }
 
-    fun updateSettings(gloveWidthCm: Float, saveOriginal: Boolean) {
+    fun updateSettings(gloveWidthCm: Float, saveOriginal: Boolean, shutterSound: Boolean) {
         viewModelScope.launch {
             userPreferencesRepository.updateReferenceGloveWidth(gloveWidthCm)
             userPreferencesRepository.updateSaveOriginalPhoto(saveOriginal)
+            userPreferencesRepository.updateShutterSound(shutterSound)
             _uiState.update { it.copy(showSettingsDialog = false) }
         }
     }
@@ -256,5 +372,10 @@ class BassShotViewModel(
 
     fun dismissUpdateDialog() {
         _uiState.update { it.copy(showUpdateDialog = false) }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        mediaActionSound.release()
     }
 }

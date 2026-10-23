@@ -1,11 +1,26 @@
 package com.jongh0.bassshot.domain.util
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Matrix
+import android.net.Uri
 import androidx.camera.core.ImageProxy
+import androidx.exifinterface.media.ExifInterface
+import java.text.SimpleDateFormat
+import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+
+data class ImportedPhotoResult(
+    val bitmap: Bitmap,
+    val capturedDateFormatted: String? = null,
+    val capturedDayOfWeekFormatted: String? = null,
+    val capturedTimeFormatted: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null
+)
 
 object BitmapProcessor {
 
@@ -58,6 +73,122 @@ object BitmapProcessor {
         } else {
             cropped
         }
+    }
+
+    /**
+     * 갤러리에서 불러온 외부 사진의 비트맵 디코딩, EXIF 방향 보정 및 메타데이터(일시, 위치) 추출
+     */
+    fun decodeUriWithExif(context: Context, uri: Uri): ImportedPhotoResult {
+        var orientation = ExifInterface.ORIENTATION_NORMAL
+        var dateFormatted: String? = null
+        var dayOfWeekFormatted: String? = null
+        var timeFormatted: String? = null
+        var latitude: Double? = null
+        var longitude: Double? = null
+
+        // 1. EXIF 메타데이터 파싱
+        try {
+            context.contentResolver.openInputStream(uri)?.use { stream ->
+                val exif = ExifInterface(stream)
+                orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+
+                val latLong = exif.latLong
+                if (latLong != null && latLong.size >= 2) {
+                    latitude = latLong[0]
+                    longitude = latLong[1]
+                }
+
+                val dateStr = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+                    ?: exif.getAttribute(ExifInterface.TAG_DATETIME)
+                if (!dateStr.isNullOrBlank()) {
+                    val exifParser = SimpleDateFormat("yyyy:MM:dd HH:mm:ss", Locale.US)
+                    val dateObj = exifParser.parse(dateStr)
+                    if (dateObj != null) {
+                        dateFormatted = SimpleDateFormat("yyyy년 M월 d일", Locale.KOREA).format(dateObj)
+                        dayOfWeekFormatted = SimpleDateFormat("EEEE", Locale.KOREA).format(dateObj)
+                        timeFormatted = SimpleDateFormat("HH:mm", Locale.KOREA).format(dateObj)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        // 2. 비트맵 크기 사전 측정 (OOM 방어)
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.contentResolver.openInputStream(uri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, options)
+        }
+
+        var sampleSize = 1
+        val maxSide = max(options.outWidth, options.outHeight)
+        while (maxSide / sampleSize > 4096) {
+            sampleSize *= 2
+        }
+
+        val decodeOptions = BitmapFactory.Options().apply {
+            inSampleSize = sampleSize
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
+
+        val rawBitmap = context.contentResolver.openInputStream(uri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, decodeOptions)
+        } ?: throw IllegalStateException("사진을 읽어올 수 없습니다.")
+
+        // 3. EXIF 회전각 보정
+        val rotationDegrees = when (orientation) {
+            ExifInterface.ORIENTATION_ROTATE_90 -> 90f
+            ExifInterface.ORIENTATION_ROTATE_180 -> 180f
+            ExifInterface.ORIENTATION_ROTATE_270 -> 270f
+            else -> 0f
+        }
+
+        val rotatedBitmap = if (rotationDegrees != 0f) {
+            val matrix = Matrix().apply { postRotate(rotationDegrees) }
+            val fixed = Bitmap.createBitmap(rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, matrix, true)
+            if (fixed != rawBitmap) rawBitmap.recycle()
+            fixed
+        } else {
+            rawBitmap
+        }
+
+        // 4. 세로 방향 보장 (가로 사진일 경우 90도 회전)
+        val portraitBitmap = if (rotatedBitmap.width > rotatedBitmap.height) {
+            val matrix = Matrix().apply { postRotate(90f) }
+            val fixed = Bitmap.createBitmap(rotatedBitmap, 0, 0, rotatedBitmap.width, rotatedBitmap.height, matrix, true)
+            if (fixed != rotatedBitmap) rotatedBitmap.recycle()
+            fixed
+        } else {
+            rotatedBitmap
+        }
+
+        // 5. 3:4 세로 비율 중앙 크롭
+        val cropped = cropToAspectRatio(portraitBitmap, 3f / 4f)
+
+        // 6. 4032px 초과 스케일링
+        val maxDim = max(cropped.width, cropped.height)
+        val finalBitmap = if (maxDim > 4032) {
+            val scale = 4032f / maxDim
+            val scaled = Bitmap.createScaledBitmap(
+                cropped,
+                (cropped.width * scale).roundToInt(),
+                (cropped.height * scale).roundToInt(),
+                true
+            )
+            if (scaled != cropped) cropped.recycle()
+            scaled
+        } else {
+            cropped
+        }
+
+        return ImportedPhotoResult(
+            bitmap = finalBitmap,
+            capturedDateFormatted = dateFormatted,
+            capturedDayOfWeekFormatted = dayOfWeekFormatted,
+            capturedTimeFormatted = timeFormatted,
+            latitude = latitude,
+            longitude = longitude
+        )
     }
 
     /**

@@ -6,8 +6,8 @@ import android.graphics.Bitmap
  * 실시간 카메라 프리뷰 및 최종 캡처본에 오버레이될 환경 데이터
  */
 data class EnvironmentData(
-    val timeFormatted: String = "--:--", // e.g. "13:26"
-    val dateFormatted: String = "", // e.g. "2026년10월23일"
+    val timeFormatted: String = "--:--", // e.g. "21:24"
+    val dateFormatted: String = "", // e.g. "2026년 10월 23일"
     val dayOfWeekFormatted: String = "", // e.g. "금요일"
     val tempCelsius: Float? = null, // e.g. 18.0f
     val weatherDescription: String? = null, // e.g. "맑음"
@@ -20,14 +20,30 @@ data class EnvironmentData(
     val longitude: Double? = null
 ) {
     /**
-     * 주소 및 기상 정보 한 줄/두 줄 조합
+     * 날짜 및 요일 한 줄 조합: "2026년 10월 21일 (금요일)"
      */
-    fun formattedAddressAndWeatherLine(): String {
-        val parts = mutableListOf<String>()
-
-        if (!addressKorean.isNullOrBlank()) {
-            parts.add(addressKorean)
+    fun formattedDateAndDayLine(): String {
+        return if (dateFormatted.isNotEmpty() && dayOfWeekFormatted.isNotEmpty()) {
+            "$dateFormatted ($dayOfWeekFormatted)"
+        } else if (dateFormatted.isNotEmpty()) {
+            dateFormatted
+        } else {
+            ""
         }
+    }
+
+    /**
+     * 주소 전용 라인 (긴 주소도 잘리지 않도록 독립 줄로 제공)
+     */
+    fun formattedAddressOnly(): String {
+        return addressKorean?.takeIf { it.isNotBlank() } ?: "위치 확인 중..."
+    }
+
+    /**
+     * 날씨, 기온, 바람, 기압 전용 라인: "맑음 18°C  ·  바람 1.2m/s  ·  1013hPa"
+     */
+    fun formattedWeatherOnly(): String {
+        val parts = mutableListOf<String>()
 
         val weatherPart = buildString {
             if (!weatherDescription.isNullOrBlank()) {
@@ -48,6 +64,15 @@ data class EnvironmentData(
             parts.add("${pressureHpa.toInt()}hPa")
         }
 
-        return if (parts.isEmpty()) "위치 정보 수신 중" else parts.joinToString("  |  ")
+        return if (parts.isEmpty()) "기상 정보 수신 중" else parts.joinToString("  ·  ")
+    }
+
+    /**
+     * 하위 호환용 전체 조합 라인
+     */
+    fun formattedAddressAndWeatherLine(): String {
+        val addr = addressKorean?.takeIf { it.isNotBlank() }
+        val weather = formattedWeatherOnly()
+        return if (addr != null) "$addr  |  $weather" else weather
     }
 }

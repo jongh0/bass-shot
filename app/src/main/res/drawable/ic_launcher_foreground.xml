@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- 배스 물고기 실루엣 (곡선형 어체와 꼬리지느러미) -->
+    <path
+        android:fillColor="#F5B301"
+        android:pathData="M 68,34 C 76,38 82,46 82,54 C 82,62 76,70 68,74 C 74,78 78,84 82,88 C 76,84 70,80 64,75 C 58,78 50,80 42,78 C 30,75 22,66 22,54 C 22,42 30,33 42,30 C 50,28 58,30 64,33 C 70,28 76,24 82,20 C 78,24 74,30 68,34 Z" />
+
+    <!-- 물고기 꼬리 지느러미 갈래 디테일 -->
+    <path
+        android:strokeColor="#0A0A0C"
+        android:strokeWidth="1.5"
+        android:pathData="M 76,27 L 66,35 M 76,81 L 66,73" />
+
+    <!-- 물고기 입 벌림(배스 턱 형태) 실루엣 컷아웃 -->
+    <path
+        android:fillColor="#0A0A0C"
+        android:pathData="M 22,54 L 32,49 L 30,54 L 32,59 Z" />
+
+    <!-- 중앙 카메라 렌즈 하우징 (원형 다크 바디) -->
+    <path
+        android:fillColor="#121316"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2.5"
+        android:pathData="M 50,38 A 16,16 0 1 0 50,70 A 16,16 0 1 0 50,38" />
+
+    <!-- 카메라 렌즈 내부 조리개/조준선 (택티컬 조준 타겟) -->
+    <path
+        android:strokeColor="#F5B301"
+        android:strokeWidth="1.8"
+        android:pathData="M 50,44 A 10,10 0 1 0 50,64 A 10,10 0 1 0 50,44" />
+
+    <!-- 카메라 렌즈 중앙 동공/반사광 -->
+    <path
+        android:fillColor="#00E5FF"
+        android:pathData="M 50,51 A 3,3 0 1 0 50,57 A 3,3 0 1 0 50,51" />
+
+    <!-- 카메라 플래시 / 뷰파인더 미니 포인트 -->
+    <path
+        android:fillColor="#F8F9FA"
+        android:pathData="M 44,43 A 1.8,1.8 0 1 0 44,46.6 A 1.8,1.8 0 1 0 44,43" />
+
+    <!-- 카메라 상단 셔터 버튼 턱 -->
+    <path
+        android:fillColor="#F8F9FA"
+        android:pathData="M 46,34 L 54,34 L 54,37 L 46,37 Z" />
+
+</vector>

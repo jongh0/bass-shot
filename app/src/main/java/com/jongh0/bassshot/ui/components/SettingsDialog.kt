@@ -34,54 +34,57 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.jongh0.bassshot.ui.theme.CoolGrey
-import com.jongh0.bassshot.ui.theme.DarkSurface
-import com.jongh0.bassshot.ui.theme.HairlineBorder
-import com.jongh0.bassshot.ui.theme.LeicaAmber
-import com.jongh0.bassshot.ui.theme.MatteBlack
-import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
+import com.jongh0.bassshot.ui.theme.ChampagneGold
+import com.jongh0.bassshot.ui.theme.MutedSilver
+import com.jongh0.bassshot.ui.theme.ObsidianBlack
+import com.jongh0.bassshot.ui.theme.SubtleTitanium
+import com.jongh0.bassshot.ui.theme.WarmGraphite
 
 @Composable
 fun SettingsDialog(
     currentGloveWidthCm: Float,
     currentSaveOriginal: Boolean,
+    currentShutterSound: Boolean = true,
     onDismissRequest: () -> Unit,
-    onSaveSettings: (gloveWidthCm: Float, saveOriginal: Boolean) -> Unit
+    onSaveSettings: (gloveWidthCm: Float, saveOriginal: Boolean, shutterSound: Boolean) -> Unit
 ) {
     var gloveWidthText by remember { mutableStateOf(currentGloveWidthCm.toString()) }
     var saveOriginalState by remember { mutableStateOf(currentSaveOriginal) }
+    var shutterSoundState by remember { mutableStateOf(currentShutterSound) }
     var hasError by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismissRequest) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(DarkSurface)
-                .border(1.dp, HairlineBorder, RoundedCornerShape(14.dp))
-                .padding(20.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(AnodizedCharcoal)
+                .border(1.dp, SubtleTitanium, RoundedCornerShape(16.dp))
+                .padding(22.dp)
         ) {
             // 헤더
             Text(
-                text = "CALIBRATION & SETTINGS",
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 16.sp),
-                color = LeicaAmber,
-                letterSpacing = 1.sp
+                text = "장갑 크기 및 앱 설정",
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 17.sp),
+                color = ChampagneGold,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // 장갑 기준 폭 설정
             Text(
-                text = "주먹 쥔 장갑(손) 기준 폭 (cm)",
+                text = "주먹 쥔 손/장갑 기준 폭 (cm)",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                color = OpticalWhite
+                color = MutedSilver
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = "배스 입을 잡았을 때 손가락 너클 전체의 실제 상하 폭을 입력하세요. (기본값: 9.5cm)",
                 style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
-                color = CoolGrey
+                color = WarmGraphite
             )
 
             Spacer(modifier = Modifier.height(10.dp))
@@ -102,10 +105,10 @@ fun SettingsDialog(
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     isError = hasError,
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = OpticalWhite,
-                        unfocusedTextColor = OpticalWhite,
-                        focusedBorderColor = LeicaAmber,
-                        unfocusedBorderColor = HairlineBorder,
+                        focusedTextColor = MutedSilver,
+                        unfocusedTextColor = MutedSilver,
+                        focusedBorderColor = ChampagneGold,
+                        unfocusedBorderColor = SubtleTitanium,
                         errorBorderColor = MaterialTheme.colorScheme.error
                     )
                 )
@@ -118,7 +121,7 @@ fun SettingsDialog(
                         hasError = false
                     }
                 ) {
-                    Text("초기화", color = LeicaAmber, fontSize = 12.sp)
+                    Text("초기화", color = ChampagneGold, fontSize = 12.sp)
                 }
             }
 
@@ -133,6 +136,40 @@ fun SettingsDialog(
 
             Spacer(modifier = Modifier.height(18.dp))
 
+            // 카메라 촬영음 스위치
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "카메라 촬영음 재생",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
+                        color = MutedSilver
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "사진 촬영 시 셔터 사운드를 재생합니다.",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
+                        color = WarmGraphite
+                    )
+                }
+
+                Switch(
+                    checked = shutterSoundState,
+                    onCheckedChange = { shutterSoundState = it },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = ChampagneGold,
+                        checkedTrackColor = ObsidianBlack,
+                        uncheckedThumbColor = WarmGraphite,
+                        uncheckedTrackColor = AnodizedCharcoal
+                    )
+                )
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
             // 원본 사진 함께 저장 옵션
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -143,13 +180,13 @@ fun SettingsDialog(
                     Text(
                         text = "무보정 원본 사진 함께 저장",
                         style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = OpticalWhite
+                        color = MutedSilver
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "합성본 외에 텍스트 없는 원본(_ORIG.jpg)을 DCIM/BassShot에 동시 백업합니다.",
+                        text = "합성본 외에 텍스트와 계측선이 없는 원본 사진을 DCIM/BassShot에 함께 보관합니다.",
                         style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
-                        color = CoolGrey
+                        color = WarmGraphite
                     )
                 }
 
@@ -157,10 +194,10 @@ fun SettingsDialog(
                     checked = saveOriginalState,
                     onCheckedChange = { saveOriginalState = it },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = LeicaAmber,
-                        checkedTrackColor = MatteBlack,
-                        uncheckedThumbColor = CoolGrey,
-                        uncheckedTrackColor = DarkSurface
+                        checkedThumbColor = ChampagneGold,
+                        checkedTrackColor = ObsidianBlack,
+                        uncheckedThumbColor = WarmGraphite,
+                        uncheckedTrackColor = AnodizedCharcoal
                     )
                 )
             }
@@ -173,21 +210,21 @@ fun SettingsDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismissRequest) {
-                    Text("취소", color = CoolGrey)
+                    Text("취소", color = WarmGraphite)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
                         val parsed = gloveWidthText.toFloatOrNull()?.coerceIn(5.0f, 20.0f) ?: 9.5f
-                        onSaveSettings(parsed, saveOriginalState)
+                        onSaveSettings(parsed, saveOriginalState, shutterSoundState)
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = LeicaAmber,
-                        contentColor = MatteBlack
+                        containerColor = ChampagneGold,
+                        contentColor = ObsidianBlack
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("저장", fontWeight = FontWeight.Bold, color = MatteBlack)
+                    Text("설정 저장", fontWeight = FontWeight.Bold, color = ObsidianBlack)
                 }
             }
         }

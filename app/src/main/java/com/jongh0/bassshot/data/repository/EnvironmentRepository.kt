@@ -69,7 +69,7 @@ class EnvironmentRepository(
     }
 
     private val timeFormat = SimpleDateFormat("HH:mm", Locale.KOREA)
-    private val dateFormat = SimpleDateFormat("yyyy년M월d일", Locale.KOREA)
+    private val dateFormat = SimpleDateFormat("yyyy년 M월 d일", Locale.KOREA)
     private val dayOfWeekFormat = SimpleDateFormat("EEEE", Locale.KOREA)
 
     /**

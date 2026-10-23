@@ -3,9 +3,11 @@ package com.jongh0.bassshot.ui.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,27 +19,29 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.NormalizedPoint
-import com.jongh0.bassshot.ui.theme.DarkSurface
-import com.jongh0.bassshot.ui.theme.HairlineBorder
-import com.jongh0.bassshot.ui.theme.LeicaAmber
-import com.jongh0.bassshot.ui.theme.OpticalWhite
-import com.jongh0.bassshot.ui.theme.SmokeGlass
-import com.jongh0.bassshot.ui.theme.TacticalCyan
+import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
+import com.jongh0.bassshot.ui.theme.ChampagneGold
+import com.jongh0.bassshot.ui.theme.ChampagneGoldGlow
+import com.jongh0.bassshot.ui.theme.MutedSilver
+import com.jongh0.bassshot.ui.theme.SubtleTitanium
 import kotlin.math.hypot
 
 private enum class DragTarget {
-    NONE, SNOUT, TAIL, GIRTH_LEFT, GIRTH_RIGHT
+    NONE, SNOUT, TAIL
 }
 
 @Composable
@@ -52,195 +56,229 @@ fun MeasurementOverlay(
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val widthPx = constraints.maxWidth.toFloat()
         val heightPx = constraints.maxHeight.toFloat()
-        val touchRadiusPx = with(density) { 44.dp.toPx() }
+        // 넉넉한 64dp 터치 감지 반경으로 주둥이/꼬리 원판을 손쉽게 드래그
+        val touchRadiusPx = with(density) { 64.dp.toPx() }
 
-        // 인터랙티브 캘리퍼스 드래그 영역
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInput(measurement) {
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            val snoutPx = Offset(measurement.snoutPoint.x * widthPx, measurement.snoutPoint.y * heightPx)
-                            val tailPx = Offset(measurement.tailPoint.x * widthPx, measurement.tailPoint.y * heightPx)
-                            val girthLPx = Offset(measurement.maxGirthLeft.x * widthPx, measurement.maxGirthLeft.y * heightPx)
-                            val girthRPx = Offset(measurement.maxGirthRight.x * widthPx, measurement.maxGirthRight.y * heightPx)
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
+                        val snoutPx = Offset(measurement.snoutPoint.x * widthPx, measurement.snoutPoint.y * heightPx)
+                        val tailPx = Offset(measurement.tailPoint.x * widthPx, measurement.tailPoint.y * heightPx)
 
-                            val dSnout = hypot(offset.x - snoutPx.x, offset.y - snoutPx.y)
-                            val dTail = hypot(offset.x - tailPx.x, offset.y - tailPx.y)
-                            val dGirthL = hypot(offset.x - girthLPx.x, offset.y - girthLPx.y)
-                            val dGirthR = hypot(offset.x - girthRPx.x, offset.y - girthRPx.y)
+                        val dSnout = hypot(down.position.x - snoutPx.x, down.position.y - snoutPx.y)
+                        val dTail = hypot(down.position.x - tailPx.x, down.position.y - tailPx.y)
 
-                            val minD = minOf(dSnout, dTail, dGirthL, dGirthR)
-                            activeTarget = when {
-                                minD > touchRadiusPx -> DragTarget.NONE
-                                minD == dSnout -> DragTarget.SNOUT
-                                minD == dTail -> DragTarget.TAIL
-                                minD == dGirthL -> DragTarget.GIRTH_LEFT
-                                else -> DragTarget.GIRTH_RIGHT
+                        val minD = minOf(dSnout, dTail)
+                        val target = when {
+                            minD > touchRadiusPx -> DragTarget.NONE
+                            minD == dSnout -> DragTarget.SNOUT
+                            else -> DragTarget.TAIL
+                        }
+
+                        if (target != DragTarget.NONE) {
+                            down.consume()
+                            activeTarget = target
+
+                            while (true) {
+                                val event = awaitPointerEvent()
+                                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                                if (!change.pressed) break
+
+                                if (change.positionChanged()) {
+                                    change.consume()
+                                    val dxRatio = (change.position.x - change.previousPosition.x) / widthPx
+                                    val dyRatio = (change.position.y - change.previousPosition.y) / heightPx
+
+                                    when (target) {
+                                        DragTarget.SNOUT -> {
+                                            val newP = NormalizedPoint(
+                                                (measurement.snoutPoint.x + dxRatio).coerceIn(0.02f, 0.98f),
+                                                (measurement.snoutPoint.y + dyRatio).coerceIn(0.02f, 0.98f)
+                                            )
+                                            val updated = FishMeasurementCalculator.recalculateOnDrag(
+                                                current = measurement,
+                                                newSnout = newP
+                                            )
+                                            onMeasurementUpdated(updated)
+                                        }
+                                        DragTarget.TAIL -> {
+                                            val newP = NormalizedPoint(
+                                                (measurement.tailPoint.x + dxRatio).coerceIn(0.02f, 0.98f),
+                                                (measurement.tailPoint.y + dyRatio).coerceIn(0.02f, 0.98f)
+                                            )
+                                            val updated = FishMeasurementCalculator.recalculateOnDrag(
+                                                current = measurement,
+                                                newTail = newP
+                                            )
+                                            onMeasurementUpdated(updated)
+                                        }
+                                        DragTarget.NONE -> {}
+                                    }
+                                }
                             }
-                        },
-                        onDrag = { change, dragAmount ->
-                            change.consume()
-                            if (activeTarget == DragTarget.NONE) return@detectDragGestures
-
-                            val dxRatio = dragAmount.x / widthPx
-                            val dyRatio = dragAmount.y / heightPx
-
-                            when (activeTarget) {
-                                DragTarget.SNOUT -> {
-                                    val newP = NormalizedPoint(
-                                        measurement.snoutPoint.x + dxRatio,
-                                        measurement.snoutPoint.y + dyRatio
-                                    )
-                                    val updated = com.jongh0.bassshot.domain.util.FishMeasurementCalculator.recalculateOnDrag(
-                                        current = measurement,
-                                        newSnout = newP
-                                    )
-                                    onMeasurementUpdated(updated)
-                                }
-                                DragTarget.TAIL -> {
-                                    val newP = NormalizedPoint(
-                                        measurement.tailPoint.x + dxRatio,
-                                        measurement.tailPoint.y + dyRatio
-                                    )
-                                    val updated = com.jongh0.bassshot.domain.util.FishMeasurementCalculator.recalculateOnDrag(
-                                        current = measurement,
-                                        newTail = newP
-                                    )
-                                    onMeasurementUpdated(updated)
-                                }
-                                DragTarget.GIRTH_LEFT -> {
-                                    val newP = NormalizedPoint(
-                                        measurement.maxGirthLeft.x + dxRatio,
-                                        measurement.maxGirthLeft.y + dyRatio
-                                    )
-                                    val updated = com.jongh0.bassshot.domain.util.FishMeasurementCalculator.recalculateOnDrag(
-                                        current = measurement,
-                                        newGirthLeft = newP
-                                    )
-                                    onMeasurementUpdated(updated)
-                                }
-                                DragTarget.GIRTH_RIGHT -> {
-                                    val newP = NormalizedPoint(
-                                        measurement.maxGirthRight.x + dxRatio,
-                                        measurement.maxGirthRight.y + dyRatio
-                                    )
-                                    val updated = com.jongh0.bassshot.domain.util.FishMeasurementCalculator.recalculateOnDrag(
-                                        current = measurement,
-                                        newGirthRight = newP
-                                    )
-                                    onMeasurementUpdated(updated)
-                                }
-                                DragTarget.NONE -> {}
-                            }
-                        },
-                        onDragEnd = { activeTarget = DragTarget.NONE },
-                        onDragCancel = { activeTarget = DragTarget.NONE }
-                    )
+                            activeTarget = DragTarget.NONE
+                        }
+                    }
                 }
         ) {
             val snoutPx = Offset(measurement.snoutPoint.x * widthPx, measurement.snoutPoint.y * heightPx)
             val tailPx = Offset(measurement.tailPoint.x * widthPx, measurement.tailPoint.y * heightPx)
-            val girthLPx = Offset(measurement.maxGirthLeft.x * widthPx, measurement.maxGirthLeft.y * heightPx)
-            val girthRPx = Offset(measurement.maxGirthRight.x * widthPx, measurement.maxGirthRight.y * heightPx)
 
-            val dashEffect = PathEffect.dashPathEffect(floatArrayOf(16f, 10f), 0f)
+            val mainDash = PathEffect.dashPathEffect(floatArrayOf(16f, 10f), 0f)
 
-            // 1. 주 계측 점선 (주둥이 ~ 꼬리)
-            // 그림자
+            // 1. 주 캘리퍼스 가이드라인 (주둥이 ~ 꼬리)
             drawLine(
-                color = Color(0x99000000),
+                color = Color(0xB3000000),
                 start = snoutPx,
                 end = tailPx,
                 strokeWidth = 4.5f,
-                pathEffect = dashEffect
+                pathEffect = mainDash
             )
-            // 메인 선
             drawLine(
-                color = LeicaAmber,
+                color = ChampagneGold,
                 start = snoutPx,
                 end = tailPx,
-                strokeWidth = 2f,
-                pathEffect = dashEffect
+                strokeWidth = 2.2f,
+                pathEffect = mainDash
             )
 
-            // 2. 체고 점선 (좌 ~ 우)
-            drawLine(
-                color = TacticalCyan,
-                start = girthLPx,
-                end = girthRPx,
-                strokeWidth = 1.5f,
-                pathEffect = PathEffect.dashPathEffect(floatArrayOf(10f, 8f), 0f)
-            )
-
-            // 3. 캘리퍼스 턱(Jaw) 수평 바
+            // 2. 정밀 캘리퍼스 턱 (Snout / Tail Jaw)
             val jawHalfWidth = 24.dp.toPx()
             drawLine(
-                color = LeicaAmber,
+                color = Color(0xB3000000),
+                start = Offset(snoutPx.x - jawHalfWidth, snoutPx.y),
+                end = Offset(snoutPx.x + jawHalfWidth, snoutPx.y),
+                strokeWidth = 5f
+            )
+            drawLine(
+                color = ChampagneGold,
                 start = Offset(snoutPx.x - jawHalfWidth, snoutPx.y),
                 end = Offset(snoutPx.x + jawHalfWidth, snoutPx.y),
                 strokeWidth = 2.5f
             )
             drawLine(
-                color = LeicaAmber,
+                color = Color(0xB3000000),
+                start = Offset(tailPx.x - jawHalfWidth, tailPx.y),
+                end = Offset(tailPx.x + jawHalfWidth, tailPx.y),
+                strokeWidth = 5f
+            )
+            drawLine(
+                color = ChampagneGold,
                 start = Offset(tailPx.x - jawHalfWidth, tailPx.y),
                 end = Offset(tailPx.x + jawHalfWidth, tailPx.y),
                 strokeWidth = 2.5f
             )
 
-            // 4. 드래그 타겟 십자선/노드 렌더링
-            val handleRadius = 14.dp.toPx()
-            drawHandle(snoutPx, LeicaAmber, activeTarget == DragTarget.SNOUT, handleRadius)
-            drawHandle(tailPx, LeicaAmber, activeTarget == DragTarget.TAIL, handleRadius)
-            drawHandle(girthLPx, TacticalCyan, activeTarget == DragTarget.GIRTH_LEFT, handleRadius * 0.85f)
-            drawHandle(girthRPx, TacticalCyan, activeTarget == DragTarget.GIRTH_RIGHT, handleRadius * 0.85f)
+            // 3. 고감도 정밀 조준 핸들 (주둥이 & 꼬리 2개 노드로 직관적 제어)
+            val handleRadius = 16.dp.toPx()
+            drawPrecisionHandle(snoutPx, ChampagneGold, activeTarget == DragTarget.SNOUT, handleRadius)
+            drawPrecisionHandle(tailPx, ChampagneGold, activeTarget == DragTarget.TAIL, handleRadius)
         }
 
-        // 상단 스펙 뱃지
+        // 4. 좌상(TopStart)으로 이동된 큼직하고 살짝 투명한 스펙 뱃지 (체고 생략)
+        val isDragging = activeTarget != DragTarget.NONE
         Box(
             modifier = Modifier
-                .align(Alignment.TopCenter)
-                .padding(top = 16.dp)
-                .background(SmokeGlass, RoundedCornerShape(20.dp))
-                .border(1.dp, HairlineBorder, RoundedCornerShape(20.dp))
-                .padding(horizontal = 18.dp, vertical = 8.dp)
+                .align(Alignment.TopStart)
+                .padding(top = 16.dp, start = 16.dp)
+                .alpha(if (isDragging) 0.35f else 1.0f)
+                .background(Color(0x9918191E), RoundedCornerShape(12.dp)) // 살짝 투명한 배경
+                .border(1.dp, SubtleTitanium, RoundedCornerShape(12.dp))
+                .padding(horizontal = 14.dp, vertical = 8.dp)
         ) {
-            val fallbackNote = if (measurement.isManualFallback) " [수동 모드]" else ""
-            Text(
-                text = "${measurement.lengthCm} cm  |  ${measurement.weightG} g  (체고 ${measurement.girthCm} cm)$fallbackNote",
-                style = com.jongh0.bassshot.ui.theme.Typography.headlineMedium.copy(fontSize = 15.sp),
-                color = OpticalWhite,
-                fontWeight = FontWeight.Bold
-            )
+            Row(verticalAlignment = Alignment.Bottom) {
+                // 길이
+                Text(
+                    text = "${measurement.lengthCm}",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ChampagneGold,
+                    lineHeight = 22.sp
+                )
+                Text(
+                    text = "cm",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MutedSilver,
+                    lineHeight = 18.sp,
+                    modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
+                )
+
+                Text(
+                    text = "  ·  ",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color(0x80FFFFFF),
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+
+                // 무게
+                Text(
+                    text = "${measurement.weightG}",
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = ChampagneGold,
+                    lineHeight = 22.sp
+                )
+                Text(
+                    text = "g",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MutedSilver,
+                    lineHeight = 18.sp,
+                    modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
+                )
+            }
         }
     }
 }
 
-private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawHandle(
+private fun DrawScope.drawPrecisionHandle(
     center: Offset,
     color: Color,
     isActive: Boolean,
     baseRadius: Float
 ) {
-    val radius = if (isActive) baseRadius * 1.3f else baseRadius
+    val radius = if (isActive) baseRadius * 1.25f else baseRadius
 
-    // 외곽 링
+    if (isActive) {
+        drawCircle(
+            color = ChampagneGoldGlow,
+            radius = radius * 2.2f,
+            center = center
+        )
+    }
+
+    // 어두운 반투명 원판
     drawCircle(
-        color = Color(0xCC121316),
+        color = Color(0xD918191E),
         radius = radius,
         center = center
     )
+
+    // 정밀 테두리 링
     drawCircle(
         color = color,
         radius = radius,
         center = center,
-        style = Stroke(width = if (isActive) 3f else 1.8f)
+        style = Stroke(width = if (isActive) 2.8f else 1.8f)
     )
-    // 중앙 작은 점
+
+    // 중앙 조준점
     drawCircle(
         color = color,
-        radius = 3.5f,
+        radius = 3.2f,
         center = center
     )
+
+    // 십자 미세 눈금 (카메라 레티클)
+    val tickLen = radius * 0.45f
+    val tickStroke = 1.2f
+    drawLine(color, Offset(center.x, center.y - radius - tickLen), Offset(center.x, center.y - radius), tickStroke)
+    drawLine(color, Offset(center.x, center.y + radius), Offset(center.x, center.y + radius + tickLen), tickStroke)
+    drawLine(color, Offset(center.x - radius - tickLen, center.y), Offset(center.x - radius, center.y), tickStroke)
+    drawLine(color, Offset(center.x + radius, center.y), Offset(center.x + radius + tickLen, center.y), tickStroke)
 }

@@ -27,18 +27,20 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.EnvironmentData
-import com.jongh0.bassshot.ui.theme.LeicaAmber
-import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.ChampagneGold
+import com.jongh0.bassshot.ui.theme.MutedSilver
+import com.jongh0.bassshot.ui.theme.WarmGraphite
 
 @Composable
 fun TimemarkOverlay(
     environmentData: EnvironmentData,
     modifier: Modifier = Modifier
 ) {
-    // 글자 자체에 은은한 블랙 드롭 섀도우를 주어 배경 박스 없이도 밝은 사진/물가 위에서 선명하게 판독
+    // 텍스트 드롭 섀도우 (밝은 수면/야외에서도 시인성 보장)
     val textShadow = Shadow(
         color = Color(0xD9000000),
         offset = Offset(0f, 2f),
@@ -52,120 +54,91 @@ fun TimemarkOverlay(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.Bottom
     ) {
-        // 좌측: 시간 + 날짜(2층) + 하단 주소/날씨
+        // 좌측 4단 타임마크 정보 블록
         Column(
-            modifier = Modifier.weight(1f, fill = false),
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.Bottom
         ) {
-            // 1. 시간 + 옐로우 바 + 2층 날짜/요일
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Tall Condensed 시간 (예: 13:26)
+            // 1. 시간 (Tall Condensed 50sp)
+            Text(
+                text = environmentData.timeFormatted,
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 50.sp,
+                    lineHeight = 50.sp,
+                    letterSpacing = (-0.03).sp,
+                    fontFeatureSettings = "tnum",
+                    shadow = textShadow
+                ),
+                color = MutedSilver
+            )
+
+            Spacer(modifier = Modifier.height(3.dp))
+
+            // 2. 날짜 및 요일 (예: 2026년 10월 21일 (금요일))
+            val dateAndDay = environmentData.formattedDateAndDayLine()
+            if (dateAndDay.isNotEmpty()) {
                 Text(
-                    text = environmentData.timeFormatted,
+                    text = dateAndDay,
                     style = TextStyle(
                         fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 58.sp,
-                        lineHeight = 58.sp,
-                        letterSpacing = (-0.04).sp,
-                        fontFeatureSettings = "tnum",
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 14.5.sp,
+                        letterSpacing = (-0.01).sp,
                         shadow = textShadow
                     ),
-                    color = OpticalWhite
+                    color = ChampagneGold
                 )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // 세련된 옐로우 수직 분할 바 (얇고 정확한 높이)
-                Box(
-                    modifier = Modifier
-                        .width(2.dp)
-                        .height(44.dp)
-                        .shadow(2.dp, RoundedCornerShape(1.dp))
-                        .clip(RoundedCornerShape(1.dp))
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .clip(RoundedCornerShape(1.dp))
-                    ) {
-                        // 앰버 색상
-                        androidx.compose.foundation.Canvas(modifier = Modifier.matchParentSize()) {
-                            drawRect(LeicaAmber)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // 2층 날짜/요일
-                Column(
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    if (environmentData.dateFormatted.isNotEmpty()) {
-                        Text(
-                            text = environmentData.dateFormatted,
-                            style = TextStyle(
-                                fontFamily = FontFamily.SansSerif,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 14.sp,
-                                letterSpacing = (-0.01).sp,
-                                shadow = textShadow
-                            ),
-                            color = OpticalWhite,
-                            softWrap = false
-                        )
-                    }
-                    if (environmentData.dayOfWeekFormatted.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = environmentData.dayOfWeekFormatted,
-                            style = TextStyle(
-                                fontFamily = FontFamily.SansSerif,
-                                fontWeight = FontWeight.Normal,
-                                fontSize = 13.sp,
-                                letterSpacing = (-0.01).sp,
-                                shadow = textShadow
-                            ),
-                            color = OpticalWhite
-                        )
-                    }
-                }
+                Spacer(modifier = Modifier.height(4.dp))
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // 2. 하단 주소 및 기상 정보 (전폭을 자연스럽게 활용하여 표시)
-            val infoLine = environmentData.formattedAddressAndWeatherLine()
+            // 3. 주소 단독 줄 (긴 주소도 잘리지 않도록 단독 배치 및 최대 2줄 래핑)
             Text(
-                text = infoLine,
+                text = environmentData.formattedAddressOnly(),
                 style = TextStyle(
                     fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Normal,
-                    fontSize = 13.sp,
-                    lineHeight = 17.sp,
+                    fontSize = 12.5.sp,
+                    lineHeight = 16.sp,
                     shadow = textShadow
                 ),
-                color = OpticalWhite,
-                maxLines = 2
+                color = MutedSilver,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(modifier = Modifier.height(3.dp))
+
+            // 4. 날씨, 기온, 바람, 기압 전용 줄
+            Text(
+                text = environmentData.formattedWeatherOnly(),
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 11.5.sp,
+                    lineHeight = 15.sp,
+                    shadow = textShadow
+                ),
+                color = WarmGraphite,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
 
-        // 우측 하단: 시원하게 확대된 미니 정적 지도 (92dp 정사각형)
+        // 우측: 정적 지도 미니 맵
         environmentData.staticMapBitmap?.let { mapBitmap ->
-            Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
             Box(
                 modifier = Modifier
-                    .size(92.dp)
-                    .shadow(elevation = 6.dp, shape = RoundedCornerShape(8.dp))
-                    .clip(RoundedCornerShape(8.dp))
-                    .border(1.5.dp, Color.White, RoundedCornerShape(8.dp))
+                    .size(88.dp)
+                    .shadow(10.dp, RoundedCornerShape(10.dp))
+                    .clip(RoundedCornerShape(10.dp))
+                    .border(1.5.dp, Color.White, RoundedCornerShape(10.dp))
             ) {
                 Image(
                     bitmap = mapBitmap.asImageBitmap(),
-                    contentDescription = "Mini Static Map",
+                    contentDescription = "Fishing Spot Map",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.matchParentSize()
                 )

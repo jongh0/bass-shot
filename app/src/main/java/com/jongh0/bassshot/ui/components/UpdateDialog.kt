@@ -23,12 +23,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.jongh0.bassshot.ui.theme.CoolGrey
-import com.jongh0.bassshot.ui.theme.DarkSurface
-import com.jongh0.bassshot.ui.theme.HairlineBorder
-import com.jongh0.bassshot.ui.theme.LeicaAmber
-import com.jongh0.bassshot.ui.theme.MatteBlack
-import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
+import com.jongh0.bassshot.ui.theme.ChampagneGold
+import com.jongh0.bassshot.ui.theme.MutedSilver
+import com.jongh0.bassshot.ui.theme.ObsidianBlack
+import com.jongh0.bassshot.ui.theme.SubtleTitanium
+import com.jongh0.bassshot.ui.theme.WarmGraphite
 
 @Composable
 fun UpdateDialog(
@@ -40,24 +40,26 @@ fun UpdateDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(14.dp))
-                .background(DarkSurface)
-                .border(1.dp, HairlineBorder, RoundedCornerShape(14.dp))
-                .padding(20.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(AnodizedCharcoal)
+                .border(1.dp, SubtleTitanium, RoundedCornerShape(16.dp))
+                .padding(22.dp)
         ) {
             Text(
-                text = "NEW VERSION AVAILABLE",
-                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 16.sp),
-                color = LeicaAmber,
-                letterSpacing = 1.sp
+                text = "새 버전 업데이트 안내",
+                style = MaterialTheme.typography.headlineMedium.copy(fontSize = 17.sp),
+                color = ChampagneGold,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp
             )
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "BassShot 최신 버전($versionName)이 출시되었습니다.\n지금 업데이트하여 최신 AI 모델과 개선 사항을 적용하시겠습니까?",
+                text = "배스샷 최신 버전($versionName)이 출시되었습니다.\n지금 업데이트하여 최신 AI 모델과 개선 사항을 적용하시겠습니까?",
                 style = MaterialTheme.typography.bodyMedium,
-                color = CoolGrey
+                color = MutedSilver,
+                lineHeight = 20.sp
             )
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -67,18 +69,18 @@ fun UpdateDialog(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(onClick = onDismissRequest) {
-                    Text("나중에", color = CoolGrey)
+                    Text("나중에", color = WarmGraphite)
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = onConfirmUpdate,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = LeicaAmber,
-                        contentColor = MatteBlack
+                        containerColor = ChampagneGold,
+                        contentColor = ObsidianBlack
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text("업데이트", fontWeight = FontWeight.Bold, color = MatteBlack)
+                    Text("업데이트", fontWeight = FontWeight.Bold, color = ObsidianBlack)
                 }
             }
         }

@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,21 +35,23 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.jongh0.bassshot.ui.theme.CoolGrey
-import com.jongh0.bassshot.ui.theme.DarkSurface
-import com.jongh0.bassshot.ui.theme.LeicaAmber
-import com.jongh0.bassshot.ui.theme.MatteBlack
-import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
+import com.jongh0.bassshot.ui.theme.ChampagneGold
+import com.jongh0.bassshot.ui.theme.MutedSilver
+import com.jongh0.bassshot.ui.theme.ObsidianBlack
+import com.jongh0.bassshot.ui.theme.SubtleTitanium
 
 @Composable
 fun PermissionGate(
-    onPermissionsResult: (hasCamera: Boolean, hasLocation: Boolean) -> Unit,
+    onPermissionsResult: (hasCamera: Boolean, hasLocation: Boolean) -> Unit = { _, _ -> },
     content: @Composable () -> Unit
 ) {
     val context = LocalContext.current
+
     var hasCameraPermission by remember {
         mutableStateOf(hasPermission(context, Manifest.permission.CAMERA))
     }
+
     var hasLocationPermission by remember {
         mutableStateOf(
             hasPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ||
@@ -59,8 +62,7 @@ fun PermissionGate(
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val cameraGranted = permissions[Manifest.permission.CAMERA]
-            ?: hasCameraPermission
+        val cameraGranted = permissions[Manifest.permission.CAMERA] ?: hasCameraPermission
         val locationGranted = (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true) ||
             (permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) ||
             hasLocationPermission
@@ -72,13 +74,13 @@ fun PermissionGate(
 
     LaunchedEffect(Unit) {
         if (!hasCameraPermission || !hasLocationPermission) {
-            launcher.launch(
-                arrayOf(
-                    Manifest.permission.CAMERA,
-                    Manifest.permission.ACCESS_FINE_LOCATION,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                )
-            )
+            val list = mutableListOf<String>()
+            if (!hasCameraPermission) list.add(Manifest.permission.CAMERA)
+            if (!hasLocationPermission) {
+                list.add(Manifest.permission.ACCESS_FINE_LOCATION)
+                list.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            }
+            launcher.launch(list.toTypedArray())
         } else {
             onPermissionsResult(true, true)
         }
@@ -87,35 +89,38 @@ fun PermissionGate(
     if (hasCameraPermission) {
         content()
     } else {
-        // Camera Permission Required Fallback Screen (Tactical Dark UI)
+        // 권한 요청 대기 화면
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MatteBlack)
+                .background(ObsidianBlack)
                 .padding(24.dp),
             contentAlignment = Alignment.Center
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(DarkSurface)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(AnodizedCharcoal)
+                    .border(1.dp, SubtleTitanium, RoundedCornerShape(16.dp))
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    text = "CAMERA ACCESS REQUIRED",
-                    color = LeicaAmber,
+                    text = "카메라 및 위치 권한 필요",
+                    color = ChampagneGold,
                     style = MaterialTheme.typography.headlineMedium.copy(fontSize = 18.sp),
-                    letterSpacing = 1.sp
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "배스 자동 계측 및 타임마크 촬영을 위해\n카메라 권한 승인이 반드시 필요합니다.",
-                    color = CoolGrey,
+                    color = MutedSilver,
                     style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
@@ -129,15 +134,15 @@ fun PermissionGate(
                         )
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = LeicaAmber,
-                        contentColor = MatteBlack
+                        containerColor = ChampagneGold,
+                        contentColor = ObsidianBlack
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         text = "권한 허용하기",
                         fontWeight = FontWeight.Bold,
-                        color = MatteBlack
+                        color = ObsidianBlack
                     )
                 }
             }

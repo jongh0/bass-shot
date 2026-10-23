@@ -10,19 +10,19 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = LeicaAmber,
-    onPrimary = MatteBlack,
-    secondary = TacticalCyan,
-    onSecondary = MatteBlack,
-    background = MatteBlack,
-    onBackground = OpticalWhite,
-    surface = DarkSurface,
-    onSurface = OpticalWhite,
+    primary = ChampagneGold,
+    onPrimary = ObsidianBlack,
+    secondary = SoftSage,
+    onSecondary = ObsidianBlack,
+    background = ObsidianBlack,
+    onBackground = MutedSilver,
+    surface = AnodizedCharcoal,
+    onSurface = MutedSilver,
     surfaceVariant = SmokeGlass,
-    onSurfaceVariant = CoolGrey,
-    outline = HairlineBorder,
+    onSurfaceVariant = WarmGraphite,
+    outline = SubtleTitanium,
     error = ErrorRed,
-    onError = OpticalWhite
+    onError = MutedSilver
 )
 
 @Composable
@@ -34,8 +34,8 @@ fun BassShotTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as? Activity)?.window ?: return@SideEffect
-            window.statusBarColor = MatteBlack.toArgb()
-            window.navigationBarColor = MatteBlack.toArgb()
+            window.statusBarColor = ObsidianBlack.toArgb()
+            window.navigationBarColor = ObsidianBlack.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = false
             WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = false
         }
