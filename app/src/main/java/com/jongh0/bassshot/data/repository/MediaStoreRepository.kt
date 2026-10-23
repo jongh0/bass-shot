@@ -1,5 +1,6 @@
 package com.jongh0.bassshot.data.repository
 
+import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.graphics.Bitmap
@@ -9,6 +10,7 @@ import android.os.Environment
 import android.provider.MediaStore
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.EnvironmentData
+import com.jongh0.bassshot.domain.model.SavedPhotoItem
 import com.jongh0.bassshot.domain.util.FishExifHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -132,6 +134,74 @@ class MediaStoreRepository(private val context: Context) {
             }
         } finally {
             tempFile.delete()
+        }
+    }
+
+    /**
+     * BassShot 앱이 DCIM/BassShot 폴더에 저장한 사진 목록을 최신순(내림차순)으로 조회
+     */
+    suspend fun queryBassShotPhotos(): List<SavedPhotoItem> = withContext(Dispatchers.IO) {
+        val photoList = mutableListOf<SavedPhotoItem>()
+        val projection = arrayOf(
+            MediaStore.Images.Media._ID,
+            MediaStore.Images.Media.DISPLAY_NAME,
+            MediaStore.Images.Media.DATE_ADDED
+        )
+
+        val selection = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            "${MediaStore.Images.Media.RELATIVE_PATH} LIKE ? OR ${MediaStore.Images.Media.DISPLAY_NAME} LIKE ?"
+        } else {
+            "${MediaStore.Images.Media.DATA} LIKE ? OR ${MediaStore.Images.Media.DISPLAY_NAME} LIKE ?"
+        }
+        val selectionArgs = arrayOf("%DCIM/BassShot%", "BASS_%")
+        val sortOrder = "${MediaStore.Images.Media.DATE_ADDED} DESC"
+
+        try {
+            context.contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                sortOrder
+            )?.use { cursor ->
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DISPLAY_NAME)
+                val dateColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
+
+                while (cursor.moveToNext()) {
+                    val id = cursor.getLong(idColumn)
+                    val displayName = cursor.getString(nameColumn) ?: ""
+                    val dateAdded = cursor.getLong(dateColumn)
+                    val contentUri = ContentUris.withAppendedId(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        id
+                    )
+                    photoList.add(
+                        SavedPhotoItem(
+                            id = id,
+                            uri = contentUri,
+                            displayName = displayName,
+                            dateAdded = dateAdded
+                        )
+                    )
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        photoList
+    }
+
+    /**
+     * 특정 사진을 MediaStore에서 삭제
+     */
+    suspend fun deletePhoto(uri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
+        runCatching {
+            val rowsDeleted = context.contentResolver.delete(uri, null, null)
+            if (rowsDeleted <= 0) {
+                throw IllegalStateException("사진 삭제에 실패했습니다.")
+            }
         }
     }
 }

@@ -41,8 +41,7 @@ import com.jongh0.bassshot.ui.theme.WarmGraphite
 @Composable
 fun TimemarkOverlay(
     environmentData: EnvironmentData,
-    modifier: Modifier = Modifier,
-    hasMeasurementOverlay: Boolean = false
+    modifier: Modifier = Modifier
 ) {
     // 텍스트 드롭 섀도우 (밝은 수면/야외에서도 시인성 보장)
     val textShadow = Shadow(
@@ -53,11 +52,10 @@ fun TimemarkOverlay(
 
     Box(modifier = modifier.fillMaxSize()) {
         // 1. 좌상단 날씨 3줄 정보 (배경 박스 없이 드롭 섀도우로 최상단 좌측에 밀착 배치)
-        val weatherStartPadding = if (hasMeasurementOverlay) 96.dp else 12.dp
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(top = 10.dp, start = weatherStartPadding),
+                .padding(top = 10.dp, start = 12.dp),
             horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
@@ -110,14 +108,14 @@ fun TimemarkOverlay(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                // 1. 시간 (Tall Condensed 42sp)
+                // 1. 시간 (Tall Condensed 38sp)
                 Text(
                     text = environmentData.timeFormatted,
                     style = TextStyle(
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 42.sp,
-                        lineHeight = 42.sp,
+                        fontSize = 38.sp,
+                        lineHeight = 38.sp,
                         letterSpacing = (-0.03).sp,
                         fontFeatureSettings = "tnum",
                         shadow = textShadow

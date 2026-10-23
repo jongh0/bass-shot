@@ -66,7 +66,7 @@ fun SettingsDialog(
         ) {
             // 헤더
             Text(
-                text = "장갑 크기 및 앱 설정",
+                text = "손 크기 및 앱 설정",
                 style = MaterialTheme.typography.headlineMedium.copy(fontSize = 17.sp),
                 color = OpticalWhite,
                 fontWeight = FontWeight.Bold,
@@ -75,9 +75,9 @@ fun SettingsDialog(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // 장갑 기준 폭 설정
+            // 손 기준 폭 설정
             Text(
-                text = "주먹 쥔 손/장갑 기준 폭 (cm)",
+                text = "주먹 쥔 손 기준 폭 (cm)",
                 style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
                 color = MutedSilver
             )

@@ -25,5 +25,8 @@ data class BassShotUiState(
     val showSettingsDialog: Boolean = false,
     val showUpdateDialog: Boolean = false,
     val updateDownloadUrl: String? = null,
-    val updateVersionName: String? = null
+    val updateVersionName: String? = null,
+    val savedPhotos: List<SavedPhotoItem> = emptyList(),
+    val isPhotoViewerOpen: Boolean = false,
+    val initialViewerPhotoIndex: Int = 0
 )

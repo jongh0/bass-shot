@@ -1,6 +1,8 @@
 package com.jongh0.bassshot.ui.camera
 
+import android.Manifest
 import android.app.Application
+import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
@@ -16,6 +18,7 @@ import com.jongh0.bassshot.data.repository.UpdateRepository
 import com.jongh0.bassshot.domain.model.AppState
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.BassShotUiState
+import com.jongh0.bassshot.domain.model.SavedPhotoItem
 import com.jongh0.bassshot.domain.util.BitmapProcessor
 import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
 import com.jongh0.bassshot.domain.util.HighResCanvasCompositor
@@ -53,6 +56,7 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
         startRealtimeClock()
         observeUserPreferences()
         checkForAppUpdates()
+        loadSavedPhotos()
     }
 
     private fun observeUserPreferences() {
@@ -69,16 +73,27 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
         }
     }
 
+    private fun checkHasLocationPermission(): Boolean {
+        val app = getApplication<Application>()
+        return ContextCompat.checkSelfPermission(
+            app, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(
+            app, Manifest.permission.ACCESS_COARSE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
     /**
-     * 1초마다 시계 갱신
+     * 1초마다 시계 갱신 (프리뷰 상태일 때만 현재 시간으로 갱신하여 결과 확인 중인 사진 시간 보존)
      */
     private fun startRealtimeClock() {
         viewModelScope.launch {
             while (isActive) {
-                _uiState.update { current ->
-                    current.copy(
-                        environmentData = environmentRepository.createCurrentTimeData(current.environmentData)
-                    )
+                if (_uiState.value.appState == AppState.CAMERA_PREVIEW) {
+                    _uiState.update { current ->
+                        current.copy(
+                            environmentData = environmentRepository.createCurrentTimeData(current.environmentData)
+                        )
+                    }
                 }
                 delay(1000L)
             }
@@ -87,11 +102,16 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
 
     /**
      * 위치 권한 상태에 따라 환경 정보(기압, 날씨, 주소, 지도) 갱신
+     * (카메라 프리뷰 상태일 때만 최신 정보로 갱신하여 결과 확인 중인 사진의 메타데이터 보존)
      */
-    fun refreshEnvironmentData(hasLocationPermission: Boolean) {
+    fun refreshEnvironmentData(hasLocationPermission: Boolean = checkHasLocationPermission()) {
+        if (_uiState.value.appState != AppState.CAMERA_PREVIEW) return
+
         viewModelScope.launch {
             val freshData = environmentRepository.fetchFreshEnvironmentData(hasLocationPermission)
-            _uiState.update { it.copy(environmentData = freshData) }
+            if (_uiState.value.appState == AppState.CAMERA_PREVIEW) {
+                _uiState.update { it.copy(environmentData = freshData) }
+            }
         }
     }
 
@@ -103,9 +123,9 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
             return
         }
 
-        // 절제된 부드러운 셔터음 재생 (설정에서 켜져 있을 때만)
+        // 갤럭시 기본 셔터음 재생 (설정에서 켜져 있을 때만, 중간 크기 볼륨)
         if (_uiState.value.isShutterSoundEnabled) {
-            ShutterSoundPlayer.playGentleShutterSound()
+            ShutterSoundPlayer.playDefaultShutterSound()
         }
 
         val executor = ContextCompat.getMainExecutor(getApplication())
@@ -303,6 +323,10 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                 )
             }
 
+            if (savedUri != null) {
+                loadSavedPhotos()
+            }
+
             withContext(Dispatchers.Main) {
                 if (savedUri != null) {
                     android.widget.Toast.makeText(getApplication(), "갤러리에 저장되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
@@ -348,14 +372,73 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                 errorMessage = null
             )
         }
+        refreshEnvironmentData()
     }
 
     fun openSettingsDialog() {
+        if (_uiState.value.appState != AppState.CAMERA_PREVIEW) return
         _uiState.update { it.copy(showSettingsDialog = true) }
     }
 
     fun dismissSettingsDialog() {
         _uiState.update { it.copy(showSettingsDialog = false) }
+    }
+
+    /**
+     * DCIM/BassShot 에 저장된 사진 목록 조회
+     */
+    fun loadSavedPhotos() {
+        viewModelScope.launch {
+            val photos = mediaStoreRepository.queryBassShotPhotos()
+            _uiState.update { it.copy(savedPhotos = photos) }
+        }
+    }
+
+    /**
+     * 사진 뷰어 열기
+     */
+    fun openPhotoViewer(startIndex: Int = 0) {
+        if (_uiState.value.savedPhotos.isEmpty()) {
+            loadSavedPhotos()
+        }
+        _uiState.update {
+            it.copy(
+                isPhotoViewerOpen = true,
+                initialViewerPhotoIndex = startIndex.coerceAtLeast(0)
+            )
+        }
+    }
+
+    /**
+     * 사진 뷰어 닫기
+     */
+    fun closePhotoViewer() {
+        _uiState.update { it.copy(isPhotoViewerOpen = false) }
+    }
+
+    /**
+     * 사진 뷰어에서 사진 삭제
+     */
+    fun deletePhoto(item: SavedPhotoItem) {
+        viewModelScope.launch {
+            val result = mediaStoreRepository.deletePhoto(item.uri)
+            if (result.isSuccess) {
+                val updatedList = _uiState.value.savedPhotos.filter { it.id != item.id }
+                _uiState.update {
+                    it.copy(
+                        savedPhotos = updatedList,
+                        isPhotoViewerOpen = updatedList.isNotEmpty()
+                    )
+                }
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(getApplication(), "사진이 삭제되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                withContext(Dispatchers.Main) {
+                    android.widget.Toast.makeText(getApplication(), "사진 삭제에 실패했습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     fun updateSettings(gloveWidthCm: Float, saveOriginal: Boolean, shutterSound: Boolean) {
@@ -394,5 +477,10 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
 
     fun dismissUpdateDialog() {
         _uiState.update { it.copy(showUpdateDialog = false) }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        ShutterSoundPlayer.release()
     }
 }

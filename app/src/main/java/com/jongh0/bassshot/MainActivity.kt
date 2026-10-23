@@ -37,4 +37,10 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        // 앱이 백그라운드에서 다시 포그라운드로 복귀할 때 실시간 환경 데이터(날씨, 기압, 주소, 지도 등) 최신화
+        viewModel.refreshEnvironmentData()
+    }
 }

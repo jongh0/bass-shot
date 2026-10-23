@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
@@ -51,9 +52,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.AppState
 import com.jongh0.bassshot.ui.components.MeasurementOverlay
+import com.jongh0.bassshot.ui.components.PhotoViewerDialog
 import com.jongh0.bassshot.ui.components.SettingsDialog
 import com.jongh0.bassshot.ui.components.TimemarkOverlay
 import com.jongh0.bassshot.ui.components.UpdateDialog
+import coil.compose.AsyncImage
 import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.ObsidianBlack
@@ -111,9 +114,13 @@ fun BassShotScreen(
                     letterSpacing = 1.8.sp
                 )
 
+                val isCameraPreview = uiState.appState == AppState.CAMERA_PREVIEW
                 IconButton(
                     onClick = { viewModel.openSettingsDialog() },
-                    modifier = Modifier.size(36.dp)
+                    enabled = isCameraPreview,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .alpha(if (isCameraPreview) 1.0f else 0.35f)
                 ) {
                     Icon(
                         imageVector = Icons.Default.Settings,
@@ -182,7 +189,6 @@ fun BassShotScreen(
                         if (!uiState.isImportedPhoto) {
                             TimemarkOverlay(
                                 environmentData = uiState.environmentData,
-                                hasMeasurementOverlay = false,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -238,6 +244,7 @@ fun BassShotScreen(
                             uiState.measurement?.let { measurement ->
                                 MeasurementOverlay(
                                     measurement = measurement,
+                                    hasWeatherAbove = !uiState.isImportedPhoto,
                                     onMeasurementUpdated = { updated ->
                                         viewModel.onMeasurementUpdated(updated)
                                     }
@@ -249,7 +256,6 @@ fun BassShotScreen(
                         if (!uiState.isImportedPhoto) {
                             TimemarkOverlay(
                                 environmentData = uiState.environmentData,
-                                hasMeasurementOverlay = showMeasurement,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -257,42 +263,62 @@ fun BassShotScreen(
                 }
             }
 
-            // 3. 하단 액션 컨트롤 바 (내비게이션바 제스처 패딩 적용)
+            // 3. 하단 액션 컨트롤 바 (검정색 여백 내 수직 중앙 정렬)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .navigationBarsPadding()
-                    .padding(bottom = 16.dp, top = 8.dp),
+                    .weight(1f)
+                    .navigationBarsPadding(),
                 contentAlignment = Alignment.Center
             ) {
                 when (uiState.appState) {
                     AppState.CAMERA_PREVIEW -> {
+                        val latestSavedPhoto = uiState.savedPhotos.firstOrNull()
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 36.dp),
+                                .padding(horizontal = 32.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // 1. 좌측 갤러리 불러오기 버튼
-                            Box(
+                            // 1. 좌측 이전 이미지 뷰어 버튼 (최신 저장 사진 썸네일 + "사진" 레이블)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(AnodizedCharcoal)
-                                    .border(1.dp, SubtleTitanium, CircleShape)
-                                    .clickable {
-                                        photoPickerLauncher.launch(
-                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                        )
-                                    },
-                                contentAlignment = Alignment.Center
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable { viewModel.openPhotoViewer(0) }
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = "갤러리 사진 불러오기",
-                                    tint = TitaniumSilver,
-                                    modifier = Modifier.size(22.dp)
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(AnodizedCharcoal)
+                                        .border(1.5.dp, SubtleTitanium, RoundedCornerShape(10.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (latestSavedPhoto != null) {
+                                        AsyncImage(
+                                            model = latestSavedPhoto.uri,
+                                            contentDescription = "최근 저장 사진",
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.Image,
+                                            contentDescription = "저장된 사진 없음",
+                                            tint = TitaniumSilver,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "사진",
+                                    color = MutedSilver,
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
 
@@ -309,34 +335,88 @@ fun BassShotScreen(
                                     .clickable { viewModel.onShutterClicked() }
                             )
 
-                            // 3. 우측 균형용 투명 스페이서
-                            Spacer(modifier = Modifier.size(48.dp))
+                            // 3. 우측 갤러리 불러오기 버튼 ("불러오기" 레이블)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .clickable {
+                                        photoPickerLauncher.launch(
+                                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                        )
+                                    }
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(AnodizedCharcoal)
+                                        .border(1.5.dp, SubtleTitanium, RoundedCornerShape(10.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PhotoLibrary,
+                                        contentDescription = "갤러리 사진 불러오기",
+                                        tint = TitaniumSilver,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "불러오기",
+                                    color = MutedSilver,
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
 
                     AppState.ANALYZING -> {
+                        val latestSavedPhoto = uiState.savedPhotos.firstOrNull()
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 36.dp)
+                                .padding(horizontal = 32.dp)
                                 .alpha(0.35f),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // 1. 좌측 갤러리 불러오기 버튼 (딤처리 비활성)
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(AnodizedCharcoal)
-                                    .border(1.dp, SubtleTitanium, CircleShape),
-                                contentAlignment = Alignment.Center
+                            // 1. 좌측 이전 이미지 버튼 (딤처리 비활성)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.PhotoLibrary,
-                                    contentDescription = null,
-                                    tint = TitaniumSilver,
-                                    modifier = Modifier.size(22.dp)
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(AnodizedCharcoal)
+                                        .border(1.5.dp, SubtleTitanium, RoundedCornerShape(10.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (latestSavedPhoto != null) {
+                                        AsyncImage(
+                                            model = latestSavedPhoto.uri,
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier.fillMaxSize()
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Default.Image,
+                                            contentDescription = null,
+                                            tint = TitaniumSilver,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "사진",
+                                    color = MutedSilver,
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
 
@@ -352,8 +432,33 @@ fun BassShotScreen(
                                     .background(OpticalWhite)
                             )
 
-                            // 3. 우측 스페이서
-                            Spacer(modifier = Modifier.size(48.dp))
+                            // 3. 우측 갤러리 불러오기 버튼 (딤처리 비활성)
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(AnodizedCharcoal)
+                                        .border(1.5.dp, SubtleTitanium, RoundedCornerShape(10.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.PhotoLibrary,
+                                        contentDescription = null,
+                                        tint = TitaniumSilver,
+                                        modifier = Modifier.size(22.dp)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "불러오기",
+                                    color = MutedSilver,
+                                    fontSize = 11.5.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                            }
                         }
                     }
 
@@ -493,6 +598,16 @@ fun BassShotScreen(
                 versionName = uiState.updateVersionName!!,
                 onDismissRequest = { viewModel.dismissUpdateDialog() },
                 onConfirmUpdate = { viewModel.confirmAppUpdate() }
+            )
+        }
+
+        // 사진 뷰어 다이얼로그 (DCIM/BassShot 앱 저장 사진 전용 스와이프 뷰어)
+        if (uiState.isPhotoViewerOpen) {
+            PhotoViewerDialog(
+                photos = uiState.savedPhotos,
+                initialIndex = uiState.initialViewerPhotoIndex,
+                onDismissRequest = { viewModel.closePhotoViewer() },
+                onDeletePhoto = { viewModel.deletePhoto(it) }
             )
         }
     }

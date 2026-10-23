@@ -35,6 +35,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -56,6 +57,7 @@ private enum class DragTarget {
 fun MeasurementOverlay(
     measurement: BassMeasurementUiModel,
     onMeasurementUpdated: (newModel: BassMeasurementUiModel) -> Unit,
+    hasWeatherAbove: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
@@ -191,104 +193,57 @@ fun MeasurementOverlay(
             drawPrecisionHandle(tailPx, OpticalWhite, activeTarget == DragTarget.TAIL, handleRadius)
         }
 
-        // 4. 좌상단(TopStart) 스펙 텍스트 (배경 박스 없이 드롭 섀도우로 최상단 모서리에 밀착)
+        // 4. 좌상단(TopStart) 스펙 텍스트 (기압 아래 살짝 띄워서 배치, 폰트 크기/색상 기압과 동일)
         val isDragging = activeTarget != DragTarget.NONE
         val textShadow = Shadow(
             color = Color(0xD9000000),
             offset = Offset(0f, 2f),
             blurRadius = 6f
         )
+        val topPadding = if (hasWeatherAbove) 64.dp else 10.dp
 
         Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(top = 10.dp, start = 12.dp)
+                .padding(top = topPadding, start = 12.dp)
                 .alpha(if (isDragging) 0.35f else 1.0f),
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            // 1줄: 길이
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "길이",
-                    fontSize = 11.sp,
-                    color = WarmGraphite,
+            // 4줄: 길이
+            Text(
+                text = "길이 ${measurement.lengthCm}cm",
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Medium,
-                    style = TextStyle(shadow = textShadow),
-                    modifier = Modifier.width(26.dp)
-                )
-                Text(
-                    text = "${measurement.lengthCm}",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(shadow = textShadow),
-                    color = OpticalWhite
-                )
-                Spacer(modifier = Modifier.width(2.dp))
-                Text(
-                    text = "cm",
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    style = TextStyle(shadow = textShadow),
-                    color = TitaniumSilver,
-                    modifier = Modifier.padding(bottom = 1.dp)
-                )
-            }
+                    shadow = textShadow
+                ),
+                color = TitaniumSilver
+            )
 
-            // 2줄: 무게
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "무게",
-                    fontSize = 11.sp,
-                    color = WarmGraphite,
+            // 5줄: 체고
+            Text(
+                text = "체고 ${measurement.girthCm}cm",
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Medium,
-                    style = TextStyle(shadow = textShadow),
-                    modifier = Modifier.width(26.dp)
-                )
-                Text(
-                    text = "${measurement.weightG}",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(shadow = textShadow),
-                    color = OpticalWhite
-                )
-                Spacer(modifier = Modifier.width(2.dp))
-                Text(
-                    text = "g",
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    style = TextStyle(shadow = textShadow),
-                    color = TitaniumSilver,
-                    modifier = Modifier.padding(bottom = 1.dp)
-                )
-            }
+                    shadow = textShadow
+                ),
+                color = TitaniumSilver
+            )
 
-            // 3줄: 체고
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    text = "체고",
-                    fontSize = 11.sp,
-                    color = WarmGraphite,
+            // 6줄: 무게
+            Text(
+                text = "무게 ${measurement.weightG}g",
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
                     fontWeight = FontWeight.Medium,
-                    style = TextStyle(shadow = textShadow),
-                    modifier = Modifier.width(26.dp)
-                )
-                Text(
-                    text = "${measurement.girthCm}",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(shadow = textShadow),
-                    color = OpticalWhite
-                )
-                Spacer(modifier = Modifier.width(2.dp))
-                Text(
-                    text = "cm",
                     fontSize = 11.sp,
-                    fontWeight = FontWeight.Medium,
-                    style = TextStyle(shadow = textShadow),
-                    color = TitaniumSilver,
-                    modifier = Modifier.padding(bottom = 1.dp)
-                )
-            }
+                    shadow = textShadow
+                ),
+                color = TitaniumSilver
+            )
         }
     }
 }

@@ -1,64 +1,108 @@
 package com.jongh0.bassshot.domain.util
 
 import android.media.AudioAttributes
-import android.media.AudioFormat
-import android.media.AudioTrack
-import kotlin.math.PI
-import kotlin.math.exp
-import kotlin.math.sin
+import android.media.MediaActionSound
+import android.media.SoundPool
+import java.io.File
 
 object ShutterSoundPlayer {
 
-    private const val SAMPLE_RATE = 44100
-    private var pcmData: ShortArray? = null
+    // 중간 정도 볼륨 (50%)
+    private const val DEFAULT_VOLUME = 0.5f
 
-    init {
-        // 부드럽고 경쾌한 기계식 카메라 셔터 사운드 (45ms, 적당히 선명한 55% 볼륨)
-        val durationMs = 45
-        val numSamples = (SAMPLE_RATE * durationMs / 1000)
-        val buffer = ShortArray(numSamples)
-        for (i in 0 until numSamples) {
-            val t = i.toDouble() / SAMPLE_RATE
-            // 950Hz의 부드러운 감쇠 클릭 파형
-            val envelope = exp(-t * 90.0)
-            val freq = 980.0 - (t * 2800.0)
-            val wave = sin(2.0 * PI * freq * t)
-            val sample = (wave * envelope * Short.MAX_VALUE * 0.55).toInt()
-            buffer[i] = sample.coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt()).toShort()
+    // 안드로이드 및 삼성 갤럭시 기본 카메라 셔터 사운드 파일 경로 후보
+    private val CANDIDATE_SOUND_PATHS = listOf(
+        "/system/media/audio/ui/camera_click.ogg",
+        "/product/media/audio/ui/camera_click.ogg",
+        "/system_ext/media/audio/ui/camera_click.ogg",
+        "/system/sounds/ui/camera_click.ogg",
+        "/system/media/audio/ui/Camera_click.ogg",
+        "/system/media/audio/ui/Shutter.ogg",
+        "/system/media/audio/ui/camera_shutter.ogg"
+    )
+
+    private var soundPool: SoundPool? = null
+    private var soundId: Int = 0
+
+    @Volatile
+    private var isLoaded: Boolean = false
+
+    private val mediaActionSound: MediaActionSound by lazy {
+        MediaActionSound().apply {
+            try {
+                load(MediaActionSound.SHUTTER_CLICK)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
-        pcmData = buffer
     }
 
-    fun playGentleShutterSound() {
-        val data = pcmData ?: return
-        try {
-            val audioTrack = AudioTrack.Builder()
-                .setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .build()
-                )
-                .setAudioFormat(
-                    AudioFormat.Builder()
-                        .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
-                        .setSampleRate(SAMPLE_RATE)
-                        .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
-                        .build()
-                )
-                .setBufferSizeInBytes(data.size * 2)
-                .setTransferMode(AudioTrack.MODE_STATIC)
-                .build()
+    init {
+        initializeSoundPool()
+    }
 
-            audioTrack.write(data, 0, data.size)
-            audioTrack.play()
-            audioTrack.setNotificationMarkerPosition(data.size)
-            audioTrack.setPlaybackPositionUpdateListener(object : AudioTrack.OnPlaybackPositionUpdateListener {
-                override fun onMarkerReached(track: AudioTrack?) {
-                    track?.release()
+    private fun initializeSoundPool() {
+        try {
+            val soundFile = CANDIDATE_SOUND_PATHS
+                .map { File(it) }
+                .firstOrNull { it.exists() && it.canRead() }
+
+            if (soundFile != null) {
+                val pool = SoundPool.Builder()
+                    .setMaxStreams(2)
+                    .setAudioAttributes(
+                        AudioAttributes.Builder()
+                            .setUsage(AudioAttributes.USAGE_ASSISTANCE_SONIFICATION)
+                            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                            .build()
+                    )
+                    .build()
+
+                pool.setOnLoadCompleteListener { _, _, status ->
+                    if (status == 0) {
+                        isLoaded = true
+                    }
                 }
-                override fun onPeriodicNotification(track: AudioTrack?) {}
-            })
+
+                soundId = pool.load(soundFile.absolutePath, 1)
+                soundPool = pool
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * 갤럭시 기본 카메라 셔터음(camera_click.ogg)을 중간 크기(0.5f)로 재생
+     * (시스템 사운드 파일 직접 접근이 제한될 경우 MediaActionSound로 안전 폴백)
+     */
+    fun playDefaultShutterSound() {
+        try {
+            if (isLoaded && soundPool != null && soundId > 0) {
+                soundPool?.play(soundId, DEFAULT_VOLUME, DEFAULT_VOLUME, 1, 0, 1.0f)
+            } else {
+                mediaActionSound.play(MediaActionSound.SHUTTER_CLICK)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            try {
+                mediaActionSound.play(MediaActionSound.SHUTTER_CLICK)
+            } catch (e2: Exception) {
+                e2.printStackTrace()
+            }
+        }
+    }
+
+    /**
+     * 하위 호환용 별칭
+     */
+    fun playGentleShutterSound() = playDefaultShutterSound()
+
+    fun release() {
+        try {
+            soundPool?.release()
+            soundPool = null
+            mediaActionSound.release()
         } catch (e: Exception) {
             e.printStackTrace()
         }
