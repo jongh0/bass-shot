@@ -10,19 +10,19 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 private val DarkColorScheme = darkColorScheme(
-    primary = ChampagneGold,
+    primary = OpticalWhite,
     onPrimary = ObsidianBlack,
-    secondary = SoftSage,
+    secondary = TitaniumSilver,
     onSecondary = ObsidianBlack,
     background = ObsidianBlack,
-    onBackground = MutedSilver,
+    onBackground = TitaniumSilver,
     surface = AnodizedCharcoal,
-    onSurface = MutedSilver,
+    onSurface = TitaniumSilver,
     surfaceVariant = SmokeGlass,
     onSurfaceVariant = WarmGraphite,
     outline = SubtleTitanium,
     error = ErrorRed,
-    onError = MutedSilver
+    onError = OpticalWhite
 )
 
 @Composable

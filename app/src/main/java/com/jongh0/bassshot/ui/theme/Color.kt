@@ -2,28 +2,31 @@ package com.jongh0.bassshot.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Luxury Minimal Camera Palette (Leica M & Hasselblad X2D Inspired)
-val ObsidianBlack = Color(0xFF0D0E11) // 딥 캔버스 블랙
-val AnodizedCharcoal = Color(0xFF18191E) // 아노다이즈드 다크 차콜 (컨트롤 바, 다이얼로그)
-val SmokeGlass = Color(0xCC18191E) // 80% 투명 스모크 글래스
+// Optical White & Titanium Monochrome Palette (Pure Camera Reticle Aesthetic)
+val ObsidianBlack = Color(0xFF0B0C0E) // 딥 캔버스 블랙
+val AnodizedCharcoal = Color(0xFF16171B) // 아노다이즈드 다크 차콜 (컨트롤 바, 다이얼로그)
+val SmokeGlass = Color(0xCC16171B) // 80% 투명 스모크 글래스
 val SubtleTitanium = Color(0xFF282A30) // 티타늄 헤어라인 보더
 val HairlineBorder = Color(0x33FFFFFF) // 20% 투명 화이트 보더
 
-// Premium Accents (세련된 샴페인 골드 & 소프트 세이지 그린)
-val ChampagneGold = Color(0xFFD4AF37) // 품격 있는 샴페인 골드 (타임마크 바, 셔터 링, 주 계측선)
-val ChampagneGoldGlow = Color(0x40D4AF37) // 드래그 시 발광 아우라
-val SoftSage = Color(0xFF52B788) // 차분한 소프트 세이지 (체고 보조선, 기압계 센서 뱃지)
-val ErrorRed = Color(0xFFE53935)
+// Crisp Precision Optical Accents (촌스러운 노란색/원색 완전 배제)
+val OpticalWhite = Color(0xFFFFFFFF) // 크리스프 옵티컬 화이트 (주 캘리퍼스 선, 레티클 조준선, 셔터 링)
+val OpticalWhiteGlow = Color(0x40FFFFFF) // 드래그 시 은은한 화이트 발광 아우라
+val TitaniumSilver = Color(0xFFE2E4E9) // 세련된 티타늄 실버 (액션 버튼, 주요 수치)
+val StudioBlue = Color(0xFF38BDF8) // 차분한 아이스 스튜디오 블루 포인트 (필요 시 미세 강조)
+val ErrorRed = Color(0xFFEF4444) // 에러
 
 // Typography & Text (눈이 편안한 은은한 실버 & 웜 그래파이트)
-val MutedSilver = Color(0xFFF0F0F3) // 메인 텍스트 (눈부신 순백색 대신 편안한 실버톤)
-val WarmGraphite = Color(0xFF8E8E96) // 서브 텍스트 / 라벨
-val DarkGrey = Color(0xFF383A42)
+val MutedSilver = Color(0xFFE2E4E9) // 메인 텍스트 (눈부시지 않은 정제된 실버)
+val WarmGraphite = Color(0xFF8E9099) // 서브 텍스트 / 라벨
+val DarkGrey = Color(0xFF32343A)
 
-// Backwards compatibility aliases
-val LeicaAmber = ChampagneGold
-val TacticalCyan = SoftSage
+// Backwards compatibility aliases (노란색/골드 완전 제거 및 옵티컬 화이트/실버 매핑)
+val ChampagneGold = OpticalWhite
+val ChampagneGoldGlow = OpticalWhiteGlow
+val LeicaAmber = OpticalWhite
+val TacticalCyan = TitaniumSilver
+val SoftSage = TitaniumSilver
 val MatteBlack = ObsidianBlack
 val DarkSurface = AnodizedCharcoal
-val OpticalWhite = MutedSilver
 val CoolGrey = WarmGraphite

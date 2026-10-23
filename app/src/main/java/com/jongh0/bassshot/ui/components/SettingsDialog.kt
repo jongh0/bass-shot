@@ -35,10 +35,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
-import com.jongh0.bassshot.ui.theme.ChampagneGold
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.ObsidianBlack
+import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
+import com.jongh0.bassshot.ui.theme.TitaniumSilver
 import com.jongh0.bassshot.ui.theme.WarmGraphite
 
 @Composable
@@ -67,7 +68,7 @@ fun SettingsDialog(
             Text(
                 text = "장갑 크기 및 앱 설정",
                 style = MaterialTheme.typography.headlineMedium.copy(fontSize = 17.sp),
-                color = ChampagneGold,
+                color = OpticalWhite,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
             )
@@ -107,7 +108,7 @@ fun SettingsDialog(
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedTextColor = MutedSilver,
                         unfocusedTextColor = MutedSilver,
-                        focusedBorderColor = ChampagneGold,
+                        focusedBorderColor = TitaniumSilver,
                         unfocusedBorderColor = SubtleTitanium,
                         errorBorderColor = MaterialTheme.colorScheme.error
                     )
@@ -121,7 +122,7 @@ fun SettingsDialog(
                         hasError = false
                     }
                 ) {
-                    Text("초기화", color = ChampagneGold, fontSize = 12.sp)
+                    Text("초기화", color = TitaniumSilver, fontSize = 12.sp)
                 }
             }
 
@@ -160,7 +161,7 @@ fun SettingsDialog(
                     checked = shutterSoundState,
                     onCheckedChange = { shutterSoundState = it },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = ChampagneGold,
+                        checkedThumbColor = TitaniumSilver,
                         checkedTrackColor = ObsidianBlack,
                         uncheckedThumbColor = WarmGraphite,
                         uncheckedTrackColor = AnodizedCharcoal
@@ -194,7 +195,7 @@ fun SettingsDialog(
                     checked = saveOriginalState,
                     onCheckedChange = { saveOriginalState = it },
                     colors = SwitchDefaults.colors(
-                        checkedThumbColor = ChampagneGold,
+                        checkedThumbColor = TitaniumSilver,
                         checkedTrackColor = ObsidianBlack,
                         uncheckedThumbColor = WarmGraphite,
                         uncheckedTrackColor = AnodizedCharcoal
@@ -219,7 +220,7 @@ fun SettingsDialog(
                         onSaveSettings(parsed, saveOriginalState, shutterSoundState)
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = ChampagneGold,
+                        containerColor = TitaniumSilver,
                         contentColor = ObsidianBlack
                     ),
                     shape = RoundedCornerShape(8.dp)

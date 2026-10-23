@@ -1,7 +1,6 @@
 package com.jongh0.bassshot.ui.camera
 
 import android.app.Application
-import android.media.MediaActionSound
 import android.net.Uri
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
@@ -20,6 +19,7 @@ import com.jongh0.bassshot.domain.model.BassShotUiState
 import com.jongh0.bassshot.domain.util.BitmapProcessor
 import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
 import com.jongh0.bassshot.domain.util.HighResCanvasCompositor
+import com.jongh0.bassshot.domain.util.ShutterSoundPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -47,11 +47,6 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
     }
 
     private val isCapturing = AtomicBoolean(false)
-
-    // 카메라 셔터 사운드 플레이어
-    private val mediaActionSound = MediaActionSound().apply {
-        load(MediaActionSound.SHUTTER_CLICK)
-    }
 
     init {
         startRealtimeClock()
@@ -107,9 +102,9 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
             return
         }
 
-        // 셔터음 재생 (설정에서 켜져 있을 때만)
+        // 절제된 부드러운 셔터음 재생 (설정에서 켜져 있을 때만)
         if (_uiState.value.isShutterSoundEnabled) {
-            mediaActionSound.play(MediaActionSound.SHUTTER_CLICK)
+            ShutterSoundPlayer.playGentleShutterSound()
         }
 
         val executor = ContextCompat.getMainExecutor(getApplication())
@@ -182,7 +177,7 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
     }
 
     /**
-     * 기촬영된 갤러리 사진 불러오기 후 AI 계측 분석 진행
+     * 기촬영된 갤러리 사진 불러오기 후 AI 계측 분석 진행 (비파괴 원본 비율 보존)
      */
     fun processImportedPhoto(uri: Uri) {
         viewModelScope.launch(Dispatchers.Default) {
@@ -196,9 +191,10 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                     )
                 }
 
-                // 1. 갤러리 비트맵 로드 및 EXIF 메타데이터 추출
+                // 1. 갤러리 비트맵 로드 및 EXIF 메타데이터 추출 (크롭 없이 원본 비율 보존)
                 val imported = BitmapProcessor.decodeUriWithExif(getApplication(), uri)
                 val fullResBitmap = imported.bitmap
+                val photoAspect = fullResBitmap.width.toFloat() / fullResBitmap.height.toFloat()
 
                 // 2. 원본 사진의 일시/위치가 있으면 환경 데이터에 반영
                 if (imported.capturedDateFormatted != null && imported.capturedTimeFormatted != null) {
@@ -221,11 +217,11 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                 val resizedForAi = BitmapProcessor.scaleForGemini(fullResBitmap, 1024)
                 val gloveWidth = _uiState.value.currentGloveWidthCm
 
-                // 4. Gemini AI 분석 실행
+                // 4. Gemini AI 분석 실행 (사진의 실제 종횡비 반영)
                 val measurementResult = measurementRepository.measureBass(
                     resizedBitmap = resizedForAi,
                     referenceGloveWidthCm = gloveWidth,
-                    imageAspectRatio = 3f / 4f
+                    imageAspectRatio = photoAspect
                 )
 
                 _uiState.update { current ->
@@ -264,16 +260,21 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
         val original = _uiState.value.capturedOriginalBitmap ?: return
         val env = _uiState.value.environmentData
         val measure = _uiState.value.measurement
+        val isImported = _uiState.value.isImportedPhoto
 
         viewModelScope.launch(Dispatchers.Default) {
             _uiState.update { it.copy(isSaving = true) }
 
-            // 원본 해상도 Canvas 직접 합성
-            val compositeBitmap = HighResCanvasCompositor.composite(original, env, measure)
+            // 원본 해상도 Canvas 직접 합성 (불러온 사진일 경우 타임마크 생략)
+            val compositeBitmap = HighResCanvasCompositor.composite(
+                originalBitmap = original,
+                environmentData = env,
+                measurement = measure,
+                isImportedPhoto = isImported
+            )
 
             val prefs = userPreferencesRepository.userPreferencesFlow.firstOrNull()
             val userSaveOriginalPref = prefs?.saveOriginalPhoto ?: true
-            val isImported = _uiState.value.isImportedPhoto
 
             // 기촬영된 갤러리 사진을 불러온 경우, 원본이 이미 갤러리에 있으므로 중복 백업 방지
             val saveOriginal = userSaveOriginalPref && !isImported
@@ -372,10 +373,5 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
 
     fun dismissUpdateDialog() {
         _uiState.update { it.copy(showUpdateDialog = false) }
-    }
-
-    override fun onCleared() {
-        super.onCleared()
-        mediaActionSound.release()
     }
 }

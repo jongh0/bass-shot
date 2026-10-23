@@ -31,7 +31,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.EnvironmentData
-import com.jongh0.bassshot.ui.theme.ChampagneGold
+import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.WarmGraphite
 
@@ -88,7 +88,7 @@ fun TimemarkOverlay(
                         letterSpacing = (-0.01).sp,
                         shadow = textShadow
                     ),
-                    color = ChampagneGold
+                    color = OpticalWhite
                 )
                 Spacer(modifier = Modifier.height(4.dp))
             }

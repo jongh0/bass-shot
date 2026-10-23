@@ -43,7 +43,7 @@ object BitmapProcessor {
             rawBitmap
         }
 
-        // 2. 세로 방향 보장 (가로 사진일 경우 90도 회전하여 세로 뷰파인더에 맞춤)
+        // 2. 세로 방향 보장 (실시간 카메라 뷰파인더 전용: 가로 센서일 경우 90도 회전)
         val portraitBitmap = if (rotatedBitmap.width > rotatedBitmap.height) {
             val matrix = Matrix().apply { postRotate(90f) }
             val fixed = Bitmap.createBitmap(
@@ -77,6 +77,7 @@ object BitmapProcessor {
 
     /**
      * 갤러리에서 불러온 외부 사진의 비트맵 디코딩, EXIF 방향 보정 및 메타데이터(일시, 위치) 추출
+     * (중요: 사용자가 찍은 배스/손이 잘리지 않도록 비파괴 원본 비율을 100% 보존합니다)
      */
     fun decodeUriWithExif(context: Context, uri: Uri): ImportedPhotoResult {
         var orientation = ExifInterface.ORIENTATION_NORMAL
@@ -135,7 +136,7 @@ object BitmapProcessor {
             BitmapFactory.decodeStream(stream, null, decodeOptions)
         } ?: throw IllegalStateException("사진을 읽어올 수 없습니다.")
 
-        // 3. EXIF 회전각 보정
+        // 3. EXIF 정규 회전각만 보정 (임의 회전이나 크롭 금지)
         val rotationDegrees = when (orientation) {
             ExifInterface.ORIENTATION_ROTATE_90 -> 90f
             ExifInterface.ORIENTATION_ROTATE_180 -> 180f
@@ -143,7 +144,7 @@ object BitmapProcessor {
             else -> 0f
         }
 
-        val rotatedBitmap = if (rotationDegrees != 0f) {
+        val correctlyOrientedBitmap = if (rotationDegrees != 0f) {
             val matrix = Matrix().apply { postRotate(rotationDegrees) }
             val fixed = Bitmap.createBitmap(rawBitmap, 0, 0, rawBitmap.width, rawBitmap.height, matrix, true)
             if (fixed != rawBitmap) rawBitmap.recycle()
@@ -152,33 +153,20 @@ object BitmapProcessor {
             rawBitmap
         }
 
-        // 4. 세로 방향 보장 (가로 사진일 경우 90도 회전)
-        val portraitBitmap = if (rotatedBitmap.width > rotatedBitmap.height) {
-            val matrix = Matrix().apply { postRotate(90f) }
-            val fixed = Bitmap.createBitmap(rotatedBitmap, 0, 0, rotatedBitmap.width, rotatedBitmap.height, matrix, true)
-            if (fixed != rotatedBitmap) rotatedBitmap.recycle()
-            fixed
-        } else {
-            rotatedBitmap
-        }
-
-        // 5. 3:4 세로 비율 중앙 크롭
-        val cropped = cropToAspectRatio(portraitBitmap, 3f / 4f)
-
-        // 6. 4032px 초과 스케일링
-        val maxDim = max(cropped.width, cropped.height)
+        // 4. 초고해상도 OOM 방어 스케일링 (비율 유지, 크롭 없음)
+        val maxDim = max(correctlyOrientedBitmap.width, correctlyOrientedBitmap.height)
         val finalBitmap = if (maxDim > 4032) {
             val scale = 4032f / maxDim
             val scaled = Bitmap.createScaledBitmap(
-                cropped,
-                (cropped.width * scale).roundToInt(),
-                (cropped.height * scale).roundToInt(),
+                correctlyOrientedBitmap,
+                (correctlyOrientedBitmap.width * scale).roundToInt(),
+                (correctlyOrientedBitmap.height * scale).roundToInt(),
                 true
             )
-            if (scaled != cropped) cropped.recycle()
+            if (scaled != correctlyOrientedBitmap) correctlyOrientedBitmap.recycle()
             scaled
         } else {
-            cropped
+            correctlyOrientedBitmap
         }
 
         return ImportedPhotoResult(

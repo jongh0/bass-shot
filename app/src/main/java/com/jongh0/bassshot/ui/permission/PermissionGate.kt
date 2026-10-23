@@ -36,10 +36,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
-import com.jongh0.bassshot.ui.theme.ChampagneGold
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.ObsidianBlack
+import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
+import com.jongh0.bassshot.ui.theme.TitaniumSilver
 
 @Composable
 fun PermissionGate(
@@ -109,7 +110,7 @@ fun PermissionGate(
             ) {
                 Text(
                     text = "카메라 및 위치 권한 필요",
-                    color = ChampagneGold,
+                    color = OpticalWhite,
                     style = MaterialTheme.typography.headlineMedium.copy(fontSize = 18.sp),
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
@@ -134,7 +135,7 @@ fun PermissionGate(
                         )
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = ChampagneGold,
+                        containerColor = TitaniumSilver,
                         contentColor = ObsidianBlack
                     ),
                     shape = RoundedCornerShape(8.dp)

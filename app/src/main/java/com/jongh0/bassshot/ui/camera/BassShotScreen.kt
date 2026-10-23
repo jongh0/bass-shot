@@ -54,12 +54,12 @@ import com.jongh0.bassshot.ui.components.SettingsDialog
 import com.jongh0.bassshot.ui.components.TimemarkOverlay
 import com.jongh0.bassshot.ui.components.UpdateDialog
 import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
-import com.jongh0.bassshot.ui.theme.ChampagneGold
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.ObsidianBlack
+import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.SmokeGlass
-import com.jongh0.bassshot.ui.theme.SoftSage
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
+import com.jongh0.bassshot.ui.theme.TitaniumSilver
 import com.jongh0.bassshot.ui.theme.WarmGraphite
 
 @Composable
@@ -102,30 +102,13 @@ fun BassShotScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "BASS SHOT",
-                        color = ChampagneGold,
-                        fontWeight = FontWeight.Black,
-                        fontSize = 17.sp,
-                        letterSpacing = 1.8.sp
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(4.dp))
-                            .background(AnodizedCharcoal)
-                            .border(1.dp, SubtleTitanium, RoundedCornerShape(4.dp))
-                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                    ) {
-                        Text(
-                            text = if (uiState.environmentData.isFromBarometerSensor) "내장 기압계" else "기상청 기압",
-                            color = if (uiState.environmentData.isFromBarometerSensor) SoftSage else WarmGraphite,
-                            fontSize = 9.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
+                Text(
+                    text = "BASS SHOT",
+                    color = OpticalWhite,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 17.sp,
+                    letterSpacing = 1.8.sp
+                )
 
                 IconButton(
                     onClick = { viewModel.openSettingsDialog() },
@@ -209,7 +192,7 @@ fun BassShotScreen(
                                     .padding(horizontal = 24.dp, vertical = 20.dp)
                             ) {
                                 CircularProgressIndicator(
-                                    color = ChampagneGold,
+                                    color = OpticalWhite,
                                     strokeWidth = 3.dp,
                                     modifier = Modifier.size(36.dp)
                                 )
@@ -257,11 +240,13 @@ fun BassShotScreen(
                             }
                         }
 
-                        // 하단 타임마크 오버레이
-                        TimemarkOverlay(
-                            environmentData = uiState.environmentData,
-                            modifier = Modifier.align(Alignment.BottomStart)
-                        )
+                        // 하단 타임마크 오버레이 (갤러리에서 불러온 사진이 아닐 때만 표시)
+                        if (!uiState.isImportedPhoto) {
+                            TimemarkOverlay(
+                                environmentData = uiState.environmentData,
+                                modifier = Modifier.align(Alignment.BottomStart)
+                            )
+                        }
                     }
                 }
             }
@@ -283,7 +268,7 @@ fun BassShotScreen(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // 1. 좌측 갤러리 불러오기 버튼 (48dp 원형 차콜 버튼 + 샴페인 골드 테두리)
+                            // 1. 좌측 갤러리 불러오기 버튼
                             Box(
                                 modifier = Modifier
                                     .size(48.dp)
@@ -300,7 +285,7 @@ fun BassShotScreen(
                                 Icon(
                                     imageVector = Icons.Default.PhotoLibrary,
                                     contentDescription = "갤러리 사진 불러오기",
-                                    tint = ChampagneGold,
+                                    tint = TitaniumSilver,
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
@@ -311,10 +296,10 @@ fun BassShotScreen(
                                     .size(76.dp)
                                     .clip(CircleShape)
                                     .background(Color(0x33FFFFFF))
-                                    .border(2.dp, ChampagneGold, CircleShape)
+                                    .border(2.dp, OpticalWhite, CircleShape)
                                     .padding(6.dp)
                                     .clip(CircleShape)
-                                    .background(MutedSilver)
+                                    .background(OpticalWhite)
                                     .clickable { viewModel.onShutterClicked() }
                             )
 
@@ -341,29 +326,60 @@ fun BassShotScreen(
                                 .padding(horizontal = 20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            // 배스 미검출 시 상단 수동 직접 계측 진입 배너 (2층 구조 분리로 하단 버튼 찌그러짐 방지)
                             if (!isBassDetected && !uiState.isManualMeasurementEnabled) {
-                                Text(
-                                    text = "물고기/손이 감지되지 않았습니다 (타임마크만 저장됨)",
-                                    color = WarmGraphite,
-                                    fontSize = 11.5.sp,
-                                    modifier = Modifier.padding(bottom = 10.dp)
-                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(8.dp))
+                                        .background(AnodizedCharcoal)
+                                        .border(1.dp, SubtleTitanium, RoundedCornerShape(8.dp))
+                                        .clickable { viewModel.enableManualMeasurement() }
+                                        .padding(horizontal = 14.dp, vertical = 9.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "물고기/손 미인식 (타임마크만 저장됨)",
+                                        color = WarmGraphite,
+                                        fontSize = 11.5.sp
+                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Edit,
+                                            contentDescription = "직접 계측",
+                                            tint = TitaniumSilver,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "직접 계측",
+                                            color = TitaniumSilver,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(10.dp))
                             }
 
+                            // 하단 메인 2개 버튼: 50:50 균등 분할로 폰 화면 너비에 상관없이 절대 찌그러지지 않음
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 // 다시 촬영 버튼
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
+                                        .weight(1f)
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(AnodizedCharcoal)
                                         .border(1.dp, SubtleTitanium, RoundedCornerShape(8.dp))
                                         .clickable { viewModel.onRetakeClicked() }
-                                        .padding(horizontal = 14.dp, vertical = 11.dp)
+                                        .padding(vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Refresh,
@@ -375,46 +391,21 @@ fun BassShotScreen(
                                     Text(
                                         text = "다시 촬영",
                                         color = MutedSilver,
-                                        fontSize = 13.sp,
+                                        fontSize = 13.5.sp,
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
 
-                                // 물고기 미검출 시 직접 수동 계측 모드로 진입 버튼
-                                if (!isBassDetected && !uiState.isManualMeasurementEnabled) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(8.dp))
-                                            .background(AnodizedCharcoal)
-                                            .border(1.dp, ChampagneGold, RoundedCornerShape(8.dp))
-                                            .clickable { viewModel.enableManualMeasurement() }
-                                            .padding(horizontal = 14.dp, vertical = 11.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "직접 계측",
-                                            tint = ChampagneGold,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(6.dp))
-                                        Text(
-                                            text = "직접 계측",
-                                            color = ChampagneGold,
-                                            fontSize = 13.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
-                                    }
-                                }
-
                                 // 갤러리 저장 상태 / 보정 완료 저장 버튼
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
                                     modifier = Modifier
+                                        .weight(1f)
                                         .clip(RoundedCornerShape(8.dp))
-                                        .background(ChampagneGold)
+                                        .background(TitaniumSilver)
                                         .clickable { viewModel.saveCurrentResult() }
-                                        .padding(horizontal = 18.dp, vertical = 11.dp)
+                                        .padding(vertical = 12.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Check,
@@ -426,7 +417,7 @@ fun BassShotScreen(
                                     Text(
                                         text = if (uiState.isSaving) "저장 중..." else "갤러리 저장됨",
                                         color = ObsidianBlack,
-                                        fontSize = 13.sp,
+                                        fontSize = 13.5.sp,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }

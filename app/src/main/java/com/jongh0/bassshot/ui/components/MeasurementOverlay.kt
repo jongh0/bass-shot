@@ -34,10 +34,10 @@ import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.NormalizedPoint
 import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
-import com.jongh0.bassshot.ui.theme.ChampagneGold
-import com.jongh0.bassshot.ui.theme.ChampagneGoldGlow
-import com.jongh0.bassshot.ui.theme.MutedSilver
+import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.OpticalWhiteGlow
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
+import com.jongh0.bassshot.ui.theme.TitaniumSilver
 import kotlin.math.hypot
 
 private enum class DragTarget {
@@ -56,7 +56,6 @@ fun MeasurementOverlay(
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val widthPx = constraints.maxWidth.toFloat()
         val heightPx = constraints.maxHeight.toFloat()
-        // 넉넉한 64dp 터치 감지 반경으로 주둥이/꼬리 원판을 손쉽게 드래그
         val touchRadiusPx = with(density) { 64.dp.toPx() }
 
         Canvas(
@@ -95,8 +94,8 @@ fun MeasurementOverlay(
                                     when (target) {
                                         DragTarget.SNOUT -> {
                                             val newP = NormalizedPoint(
-                                                (measurement.snoutPoint.x + dxRatio).coerceIn(0.02f, 0.98f),
-                                                (measurement.snoutPoint.y + dyRatio).coerceIn(0.02f, 0.98f)
+                                                (measurement.snoutPoint.x + dxRatio).coerceIn(0.01f, 0.99f),
+                                                (measurement.snoutPoint.y + dyRatio).coerceIn(0.01f, 0.99f)
                                             )
                                             val updated = FishMeasurementCalculator.recalculateOnDrag(
                                                 current = measurement,
@@ -106,8 +105,8 @@ fun MeasurementOverlay(
                                         }
                                         DragTarget.TAIL -> {
                                             val newP = NormalizedPoint(
-                                                (measurement.tailPoint.x + dxRatio).coerceIn(0.02f, 0.98f),
-                                                (measurement.tailPoint.y + dyRatio).coerceIn(0.02f, 0.98f)
+                                                (measurement.tailPoint.x + dxRatio).coerceIn(0.01f, 0.99f),
+                                                (measurement.tailPoint.y + dyRatio).coerceIn(0.01f, 0.99f)
                                             )
                                             val updated = FishMeasurementCalculator.recalculateOnDrag(
                                                 current = measurement,
@@ -129,63 +128,63 @@ fun MeasurementOverlay(
 
             val mainDash = PathEffect.dashPathEffect(floatArrayOf(16f, 10f), 0f)
 
-            // 1. 주 캘리퍼스 가이드라인 (주둥이 ~ 꼬리)
+            // 1. 주 캘리퍼스 가이드라인 (크리스프 옵티컬 화이트 + 딥 블랙 섀도우)
             drawLine(
-                color = Color(0xB3000000),
+                color = Color(0xC0000000),
                 start = snoutPx,
                 end = tailPx,
-                strokeWidth = 4.5f,
+                strokeWidth = 5f,
                 pathEffect = mainDash
             )
             drawLine(
-                color = ChampagneGold,
+                color = OpticalWhite,
                 start = snoutPx,
                 end = tailPx,
-                strokeWidth = 2.2f,
+                strokeWidth = 2.4f,
                 pathEffect = mainDash
             )
 
             // 2. 정밀 캘리퍼스 턱 (Snout / Tail Jaw)
-            val jawHalfWidth = 24.dp.toPx()
+            val jawHalfWidth = 26.dp.toPx()
             drawLine(
-                color = Color(0xB3000000),
+                color = Color(0xC0000000),
                 start = Offset(snoutPx.x - jawHalfWidth, snoutPx.y),
                 end = Offset(snoutPx.x + jawHalfWidth, snoutPx.y),
-                strokeWidth = 5f
+                strokeWidth = 5.5f
             )
             drawLine(
-                color = ChampagneGold,
+                color = OpticalWhite,
                 start = Offset(snoutPx.x - jawHalfWidth, snoutPx.y),
                 end = Offset(snoutPx.x + jawHalfWidth, snoutPx.y),
-                strokeWidth = 2.5f
+                strokeWidth = 2.6f
             )
             drawLine(
-                color = Color(0xB3000000),
+                color = Color(0xC0000000),
                 start = Offset(tailPx.x - jawHalfWidth, tailPx.y),
                 end = Offset(tailPx.x + jawHalfWidth, tailPx.y),
-                strokeWidth = 5f
+                strokeWidth = 5.5f
             )
             drawLine(
-                color = ChampagneGold,
+                color = OpticalWhite,
                 start = Offset(tailPx.x - jawHalfWidth, tailPx.y),
                 end = Offset(tailPx.x + jawHalfWidth, tailPx.y),
-                strokeWidth = 2.5f
+                strokeWidth = 2.6f
             )
 
-            // 3. 고감도 정밀 조준 핸들 (주둥이 & 꼬리 2개 노드로 직관적 제어)
+            // 3. 고감도 정밀 레티클 핸들 (주둥이 & 꼬리)
             val handleRadius = 16.dp.toPx()
-            drawPrecisionHandle(snoutPx, ChampagneGold, activeTarget == DragTarget.SNOUT, handleRadius)
-            drawPrecisionHandle(tailPx, ChampagneGold, activeTarget == DragTarget.TAIL, handleRadius)
+            drawPrecisionHandle(snoutPx, OpticalWhite, activeTarget == DragTarget.SNOUT, handleRadius)
+            drawPrecisionHandle(tailPx, OpticalWhite, activeTarget == DragTarget.TAIL, handleRadius)
         }
 
-        // 4. 좌상(TopStart)으로 이동된 큼직하고 살짝 투명한 스펙 뱃지 (체고 생략)
+        // 4. 좌상(TopStart) 큼직하고 살짝 투명한 스펙 뱃지 (옵티컬 화이트 / 티타늄 실버)
         val isDragging = activeTarget != DragTarget.NONE
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(top = 16.dp, start = 16.dp)
                 .alpha(if (isDragging) 0.35f else 1.0f)
-                .background(Color(0x9918191E), RoundedCornerShape(12.dp)) // 살짝 투명한 배경
+                .background(Color(0x9916171B), RoundedCornerShape(12.dp))
                 .border(1.dp, SubtleTitanium, RoundedCornerShape(12.dp))
                 .padding(horizontal = 14.dp, vertical = 8.dp)
         ) {
@@ -195,14 +194,14 @@ fun MeasurementOverlay(
                     text = "${measurement.lengthCm}",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = ChampagneGold,
+                    color = OpticalWhite,
                     lineHeight = 22.sp
                 )
                 Text(
                     text = "cm",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MutedSilver,
+                    color = TitaniumSilver,
                     lineHeight = 18.sp,
                     modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
                 )
@@ -220,14 +219,14 @@ fun MeasurementOverlay(
                     text = "${measurement.weightG}",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = ChampagneGold,
+                    color = OpticalWhite,
                     lineHeight = 22.sp
                 )
                 Text(
                     text = "g",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Medium,
-                    color = MutedSilver,
+                    color = TitaniumSilver,
                     lineHeight = 18.sp,
                     modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
                 )
@@ -246,7 +245,7 @@ private fun DrawScope.drawPrecisionHandle(
 
     if (isActive) {
         drawCircle(
-            color = ChampagneGoldGlow,
+            color = OpticalWhiteGlow,
             radius = radius * 2.2f,
             center = center
         )
@@ -254,7 +253,7 @@ private fun DrawScope.drawPrecisionHandle(
 
     // 어두운 반투명 원판
     drawCircle(
-        color = Color(0xD918191E),
+        color = Color(0xD916171B),
         radius = radius,
         center = center
     )

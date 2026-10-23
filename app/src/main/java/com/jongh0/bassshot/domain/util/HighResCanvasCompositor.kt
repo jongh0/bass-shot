@@ -16,17 +16,19 @@ import com.jongh0.bassshot.domain.model.EnvironmentData
 
 object HighResCanvasCompositor {
 
-    private const val COLOR_CHAMPAGNE_GOLD = "#D4AF37"
-    private const val COLOR_MUTED_SILVER = "#F0F0F3"
-    private const val COLOR_WARM_GRAPHITE = "#C0C0C6"
+    private const val COLOR_OPTICAL_WHITE = "#FFFFFF"
+    private const val COLOR_TITANIUM_SILVER = "#E2E4E9"
+    private const val COLOR_WARM_GRAPHITE = "#9496A1"
 
     /**
      * 원본 해상도 비트맵 위에 고화질 타임마크와 계측선을 직접 합성
+     * @param isImportedPhoto 갤러리에서 불러온 사진인 경우 타임마크 생략 (오직 계측 결과만 합성)
      */
     fun composite(
         originalBitmap: Bitmap,
         environmentData: EnvironmentData,
-        measurement: BassMeasurementUiModel?
+        measurement: BassMeasurementUiModel?,
+        isImportedPhoto: Boolean = false
     ): Bitmap {
         val width = originalBitmap.width
         val height = originalBitmap.height
@@ -43,8 +45,10 @@ object HighResCanvasCompositor {
             drawMeasurementHUD(canvas, width, height, scale, measurement)
         }
 
-        // 3. 4단 타임마크 정보 드로잉 (시간 -> 날짜/요일 -> 주소 -> 날씨/바람/기압)
-        drawTimemarkHUD(canvas, width, height, scale, environmentData)
+        // 3. 4단 타임마크 정보 드로잉 (불러온 사진이 아닌 직접 촬영본일 때만 합성)
+        if (!isImportedPhoto) {
+            drawTimemarkHUD(canvas, width, height, scale, environmentData)
+        }
 
         return output
     }
@@ -61,16 +65,16 @@ object HighResCanvasCompositor {
         val tailX = measurement.tailPoint.x * width
         val tailY = measurement.tailPoint.y * height
 
-        // 주 캘리퍼스 가이드라인 (샴페인 골드 + 외곽 그림자)
+        // 주 캘리퍼스 가이드라인 (크리스프 옵티컬 화이트 + 외곽 그림자)
         val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(180, 0, 0, 0)
-            strokeWidth = 5.5f * scale
+            color = Color.argb(190, 0, 0, 0)
+            strokeWidth = 6f * scale
             style = Paint.Style.STROKE
             pathEffect = DashPathEffect(floatArrayOf(24f * scale, 14f * scale), 0f)
         }
         val mainLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_CHAMPAGNE_GOLD)
-            strokeWidth = 2.5f * scale
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
+            strokeWidth = 2.6f * scale
             style = Paint.Style.STROKE
             pathEffect = DashPathEffect(floatArrayOf(24f * scale, 14f * scale), 0f)
         }
@@ -81,13 +85,13 @@ object HighResCanvasCompositor {
         // Snout & Tail 캘리퍼스 턱(Jaw)
         val jawHalfWidth = 28f * scale
         val jawPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_CHAMPAGNE_GOLD)
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
             strokeWidth = 3f * scale
             style = Paint.Style.STROKE
         }
         val jawShadow = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(180, 0, 0, 0)
-            strokeWidth = 6f * scale
+            color = Color.argb(190, 0, 0, 0)
+            strokeWidth = 6.5f * scale
             style = Paint.Style.STROKE
         }
 
@@ -102,10 +106,10 @@ object HighResCanvasCompositor {
         // 좌상(TopLeft) 큼직하고 살짝 투명한 스펙 뱃지 그리기 (체고 제외)
         val badgeText = "${measurement.lengthCm}cm  ·  ${measurement.weightG}g"
         val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_MUTED_SILVER)
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
             textSize = 34f * scale
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-            setShadowLayer(4f * scale, 0f, 2f * scale, Color.argb(180, 0, 0, 0))
+            setShadowLayer(5f * scale, 0f, 2f * scale, Color.argb(200, 0, 0, 0))
         }
 
         val textBounds = Rect()
@@ -122,7 +126,7 @@ object HighResCanvasCompositor {
 
         // 살짝 투명한 배경 (약 60% 불투명도)
         val badgeBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(155, 24, 25, 30)
+            color = Color.argb(165, 16, 17, 21)
             style = Paint.Style.FILL
         }
         val badgeBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -171,7 +175,7 @@ object HighResCanvasCompositor {
         // 3. 주소 전용 라인 (길어도 지도와 겹치지 않도록 너비 제한)
         val rawAddress = env.formattedAddressOnly()
         val addressPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_MUTED_SILVER)
+            color = Color.parseColor(COLOR_TITANIUM_SILVER)
             textSize = 28f * scale
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             setShadowLayer(8f * scale, 0f, 3f * scale, Color.argb(220, 0, 0, 0))
@@ -188,7 +192,7 @@ object HighResCanvasCompositor {
         // 2. 날짜 및 요일 라인 (예: 2026년 10월 21일 (금요일))
         val dateAndDayText = env.formattedDateAndDayLine()
         val datePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_CHAMPAGNE_GOLD)
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
             textSize = 32f * scale
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             setShadowLayer(8f * scale, 0f, 3f * scale, Color.argb(220, 0, 0, 0))
@@ -200,7 +204,7 @@ object HighResCanvasCompositor {
 
         // 1. 시간 텍스트 (Tall Condensed 스타일)
         val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_MUTED_SILVER)
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
             textSize = 108f * scale
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             letterSpacing = -0.03f

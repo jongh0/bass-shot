@@ -24,10 +24,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
-import com.jongh0.bassshot.ui.theme.ChampagneGold
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.ObsidianBlack
+import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
+import com.jongh0.bassshot.ui.theme.TitaniumSilver
 import com.jongh0.bassshot.ui.theme.WarmGraphite
 
 @Composable
@@ -48,7 +49,7 @@ fun UpdateDialog(
             Text(
                 text = "새 버전 업데이트 안내",
                 style = MaterialTheme.typography.headlineMedium.copy(fontSize = 17.sp),
-                color = ChampagneGold,
+                color = OpticalWhite,
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 0.5.sp
             )
@@ -75,7 +76,7 @@ fun UpdateDialog(
                 Button(
                     onClick = onConfirmUpdate,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = ChampagneGold,
+                        containerColor = TitaniumSilver,
                         contentColor = ObsidianBlack
                     ),
                     shape = RoundedCornerShape(8.dp)
