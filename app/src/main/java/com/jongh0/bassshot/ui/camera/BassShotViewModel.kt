@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicBoolean
 
 class BassShotViewModel(application: Application) : AndroidViewModel(application) {
@@ -147,12 +148,11 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                                 current.copy(
                                     appState = AppState.RESULT_SAVED,
                                     measurement = measurementResult,
-                                    isAnalyzing = false
+                                    isAnalyzing = false,
+                                    savedPhotoUriString = null
                                 )
                             }
-
-                            // 6. 기본 계측 결과로 즉시 갤러리 저장 실행
-                            saveCurrentResult()
+                            // 사용자가 직접 '저장' 버튼을 누를 때 저장되도록 자동 저장 제거
                         } catch (e: Exception) {
                             _uiState.update { current ->
                                 current.copy(
@@ -228,12 +228,11 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                     current.copy(
                         appState = AppState.RESULT_SAVED,
                         measurement = measurementResult,
-                        isAnalyzing = false
+                        isAnalyzing = false,
+                        savedPhotoUriString = null
                     )
                 }
-
-                // 5. 기본 결과로 DCIM 저장
-                saveCurrentResult()
+                // 사용자가 직접 '저장' 버튼을 누를 때 저장되도록 자동 저장 제거
             } catch (e: Exception) {
                 val photoAspect = _uiState.value.capturedOriginalBitmap?.let { 
                     it.width.toFloat() / it.height.toFloat() 
@@ -254,7 +253,12 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
      * 사용자가 캘리퍼스 가이드라인을 드래그하여 수정한 계측값 반영
      */
     fun onMeasurementUpdated(updated: BassMeasurementUiModel) {
-        _uiState.update { it.copy(measurement = updated) }
+        _uiState.update { 
+            it.copy(
+                measurement = updated,
+                savedPhotoUriString = null // 계측값 변경 시 다시 '저장' 버튼을 누를 수 있도록 저장 상태 리셋
+            ) 
+        }
     }
 
     /**
@@ -291,11 +295,21 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                 measurement = measure
             )
 
+            val savedUri = result.getOrNull()
             _uiState.update { current ->
                 current.copy(
                     isSaving = false,
-                    savedPhotoUriString = result.getOrNull()
+                    savedPhotoUriString = savedUri
                 )
+            }
+
+            withContext(Dispatchers.Main) {
+                if (savedUri != null) {
+                    android.widget.Toast.makeText(getApplication(), "갤러리에 저장되었습니다.", android.widget.Toast.LENGTH_SHORT).show()
+                } else {
+                    val err = result.exceptionOrNull()?.localizedMessage ?: "알 수 없는 오류"
+                    android.widget.Toast.makeText(getApplication(), "저장에 실패했습니다: $err", android.widget.Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
@@ -311,10 +325,10 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
             val fallback = current.measurement ?: FishMeasurementCalculator.createManualFallback(aspect)
             current.copy(
                 isManualMeasurementEnabled = true,
-                measurement = fallback.copy(isBassDetected = true, isManualFallback = true)
+                measurement = fallback.copy(isBassDetected = true, isManualFallback = true),
+                savedPhotoUriString = null
             )
         }
-        saveCurrentResult()
     }
 
     /**

@@ -41,7 +41,8 @@ import com.jongh0.bassshot.ui.theme.WarmGraphite
 @Composable
 fun TimemarkOverlay(
     environmentData: EnvironmentData,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    hasMeasurementOverlay: Boolean = false
 ) {
     // 텍스트 드롭 섀도우 (밝은 수면/야외에서도 시인성 보장)
     val textShadow = Shadow(
@@ -51,54 +52,48 @@ fun TimemarkOverlay(
     )
 
     Box(modifier = modifier.fillMaxSize()) {
-        // 1. 우상단 날씨 3줄 정보 블록 (날씨/기온, 바람, 기압 - 잘림 방지 및 고시인성)
-        Box(
+        // 1. 좌상단 날씨 3줄 정보 (배경 박스 없이 드롭 섀도우로 최상단 좌측에 밀착 배치)
+        val weatherStartPadding = if (hasMeasurementOverlay) 96.dp else 12.dp
+        Column(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 16.dp, end = 16.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0x9916171B))
-                .border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(10.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .align(Alignment.TopStart)
+                .padding(top = 10.dp, start = weatherStartPadding),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(3.dp)
-            ) {
-                // 1줄: 날씨 및 기온
-                Text(
-                    text = environmentData.formattedWeatherLine1(),
-                    style = TextStyle(
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 12.sp,
-                        shadow = textShadow
-                    ),
-                    color = OpticalWhite
-                )
-                // 2줄: 바람
-                Text(
-                    text = environmentData.formattedWeatherLine2(),
-                    style = TextStyle(
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 11.5.sp,
-                        shadow = textShadow
-                    ),
-                    color = TitaniumSilver
-                )
-                // 3줄: 기압
-                Text(
-                    text = environmentData.formattedWeatherLine3(),
-                    style = TextStyle(
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 11.5.sp,
-                        shadow = textShadow
-                    ),
-                    color = TitaniumSilver
-                )
-            }
+            // 1줄: 날씨 및 기온
+            Text(
+                text = environmentData.formattedWeatherLine1(),
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.5.sp,
+                    shadow = textShadow
+                ),
+                color = OpticalWhite
+            )
+            // 2줄: 바람
+            Text(
+                text = environmentData.formattedWeatherLine2(),
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 11.sp,
+                    shadow = textShadow
+                ),
+                color = TitaniumSilver
+            )
+            // 3줄: 기압
+            Text(
+                text = environmentData.formattedWeatherLine3(),
+                style = TextStyle(
+                    fontFamily = FontFamily.SansSerif,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 11.sp,
+                    shadow = textShadow
+                ),
+                color = TitaniumSilver
+            )
         }
 
         // 2. 하단 타임마크 블록 (좌측 시간/날짜/주소, 우측 미니 지도)
@@ -115,14 +110,14 @@ fun TimemarkOverlay(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.Bottom
             ) {
-                // 1. 시간 (Tall Condensed 50sp)
+                // 1. 시간 (Tall Condensed 42sp)
                 Text(
                     text = environmentData.timeFormatted,
                     style = TextStyle(
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 50.sp,
-                        lineHeight = 50.sp,
+                        fontSize = 42.sp,
+                        lineHeight = 42.sp,
                         letterSpacing = (-0.03).sp,
                         fontFeatureSettings = "tnum",
                         shadow = textShadow
@@ -140,7 +135,7 @@ fun TimemarkOverlay(
                         style = TextStyle(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.SemiBold,
-                            fontSize = 14.5.sp,
+                            fontSize = 13.sp,
                             letterSpacing = (-0.01).sp,
                             shadow = textShadow
                         ),
@@ -155,8 +150,8 @@ fun TimemarkOverlay(
                     style = TextStyle(
                         fontFamily = FontFamily.SansSerif,
                         fontWeight = FontWeight.Normal,
-                        fontSize = 12.5.sp,
-                        lineHeight = 16.sp,
+                        fontSize = 11.5.sp,
+                        lineHeight = 15.sp,
                         shadow = textShadow
                     ),
                     color = MutedSilver,

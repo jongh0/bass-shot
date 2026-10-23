@@ -28,11 +28,13 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -183,98 +185,109 @@ fun MeasurementOverlay(
                 strokeWidth = 2.6f
             )
 
-            // 3. 고감도 정밀 레티클 핸들 (주둥이 & 꼬리)
-            val handleRadius = 16.dp.toPx()
+            // 3. 고감도 정밀 레티클 핸들 (주둥이 & 꼬리 - 중앙부는 완전히 투명하여 피사체가 그대로 보임)
+            val handleRadius = 18.dp.toPx()
             drawPrecisionHandle(snoutPx, OpticalWhite, activeTarget == DragTarget.SNOUT, handleRadius)
             drawPrecisionHandle(tailPx, OpticalWhite, activeTarget == DragTarget.TAIL, handleRadius)
         }
 
-        // 4. 좌상(TopStart) 큼직하고 살짝 투명한 스펙 뱃지 (길이, 무게, 체고 1줄씩)
+        // 4. 좌상단(TopStart) 스펙 텍스트 (배경 박스 없이 드롭 섀도우로 최상단 모서리에 밀착)
         val isDragging = activeTarget != DragTarget.NONE
-        Box(
+        val textShadow = Shadow(
+            color = Color(0xD9000000),
+            offset = Offset(0f, 2f),
+            blurRadius = 6f
+        )
+
+        Column(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(top = 16.dp, start = 16.dp)
-                .alpha(if (isDragging) 0.35f else 1.0f)
-                .background(Color(0x9916171B), RoundedCornerShape(12.dp))
-                .border(1.dp, SubtleTitanium, RoundedCornerShape(12.dp))
-                .padding(horizontal = 14.dp, vertical = 10.dp)
+                .padding(top = 10.dp, start = 12.dp)
+                .alpha(if (isDragging) 0.35f else 1.0f),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // 1줄: 길이
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = "길이",
-                        fontSize = 12.sp,
-                        color = WarmGraphite,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.width(30.dp)
-                    )
-                    Text(
-                        text = "${measurement.lengthCm}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = OpticalWhite
-                    )
-                    Spacer(modifier = Modifier.width(3.dp))
-                    Text(
-                        text = "cm",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TitaniumSilver,
-                        modifier = Modifier.padding(bottom = 1.dp)
-                    )
-                }
+            // 1줄: 길이
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = "길이",
+                    fontSize = 11.sp,
+                    color = WarmGraphite,
+                    fontWeight = FontWeight.Medium,
+                    style = TextStyle(shadow = textShadow),
+                    modifier = Modifier.width(26.dp)
+                )
+                Text(
+                    text = "${measurement.lengthCm}",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(shadow = textShadow),
+                    color = OpticalWhite
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = "cm",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    style = TextStyle(shadow = textShadow),
+                    color = TitaniumSilver,
+                    modifier = Modifier.padding(bottom = 1.dp)
+                )
+            }
 
-                // 2줄: 무게
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = "무게",
-                        fontSize = 12.sp,
-                        color = WarmGraphite,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.width(30.dp)
-                    )
-                    Text(
-                        text = "${measurement.weightG}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = OpticalWhite
-                    )
-                    Spacer(modifier = Modifier.width(3.dp))
-                    Text(
-                        text = "g",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TitaniumSilver,
-                        modifier = Modifier.padding(bottom = 1.dp)
-                    )
-                }
+            // 2줄: 무게
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = "무게",
+                    fontSize = 11.sp,
+                    color = WarmGraphite,
+                    fontWeight = FontWeight.Medium,
+                    style = TextStyle(shadow = textShadow),
+                    modifier = Modifier.width(26.dp)
+                )
+                Text(
+                    text = "${measurement.weightG}",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(shadow = textShadow),
+                    color = OpticalWhite
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = "g",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    style = TextStyle(shadow = textShadow),
+                    color = TitaniumSilver,
+                    modifier = Modifier.padding(bottom = 1.dp)
+                )
+            }
 
-                // 3줄: 체고
-                Row(verticalAlignment = Alignment.Bottom) {
-                    Text(
-                        text = "체고",
-                        fontSize = 12.sp,
-                        color = WarmGraphite,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.width(30.dp)
-                    )
-                    Text(
-                        text = "${measurement.girthCm}",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = OpticalWhite
-                    )
-                    Spacer(modifier = Modifier.width(3.dp))
-                    Text(
-                        text = "cm",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TitaniumSilver,
-                        modifier = Modifier.padding(bottom = 1.dp)
-                    )
-                }
+            // 3줄: 체고
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = "체고",
+                    fontSize = 11.sp,
+                    color = WarmGraphite,
+                    fontWeight = FontWeight.Medium,
+                    style = TextStyle(shadow = textShadow),
+                    modifier = Modifier.width(26.dp)
+                )
+                Text(
+                    text = "${measurement.girthCm}",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(shadow = textShadow),
+                    color = OpticalWhite
+                )
+                Spacer(modifier = Modifier.width(2.dp))
+                Text(
+                    text = "cm",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    style = TextStyle(shadow = textShadow),
+                    color = TitaniumSilver,
+                    modifier = Modifier.padding(bottom = 1.dp)
+                )
             }
         }
     }
@@ -287,40 +300,47 @@ private fun DrawScope.drawPrecisionHandle(
     baseRadius: Float
 ) {
     val radius = if (isActive) baseRadius * 1.25f else baseRadius
+    val strokeWidth = if (isActive) 3.2f else 2.4f
 
     if (isActive) {
+        // 활성화 시 외곽 글로우 링 (중앙 및 내부는 비어있어 피사체 확인 가능)
         drawCircle(
             color = OpticalWhiteGlow,
-            radius = radius * 2.2f,
-            center = center
+            radius = radius * 1.7f,
+            center = center,
+            style = Stroke(width = 3.5f)
         )
     }
 
-    // 어두운 반투명 원판
+    // 1. 외곽 블랙 드롭 섀도우 링 (밝거나 어두운 배경 어디서나 링 테두리가 선명히 보이도록)
     drawCircle(
-        color = Color(0xD916171B),
+        color = Color(0xC0000000),
         radius = radius,
-        center = center
+        center = center,
+        style = Stroke(width = strokeWidth + 2.5f)
     )
 
-    // 정밀 테두리 링
+    // 2. 메인 테두리 링 (중앙부는 fill 없이 100% 투명하여 주둥이/꼬리 끝점이 그대로 보임!)
     drawCircle(
         color = color,
         radius = radius,
         center = center,
-        style = Stroke(width = if (isActive) 2.8f else 1.8f)
+        style = Stroke(width = strokeWidth)
     )
 
-    // 중앙 조준점
-    drawCircle(
-        color = color,
-        radius = 3.2f,
-        center = center
-    )
-
-    // 십자 미세 눈금 (카메라 레티클)
+    // 3. 링 바깥쪽으로 뻗은 십자 조준선 (링 내부는 뚫려있어 가리지 않고, 바깥에서 중심 위치를 가리킴)
     val tickLen = radius * 0.45f
-    val tickStroke = 1.2f
+    val tickStroke = if (isActive) 2.2f else 1.6f
+    val shadowTickStroke = tickStroke + 2.5f
+    val shadowColor = Color(0xC0000000)
+
+    // 십자선 그림자
+    drawLine(shadowColor, Offset(center.x, center.y - radius - tickLen), Offset(center.x, center.y - radius), shadowTickStroke)
+    drawLine(shadowColor, Offset(center.x, center.y + radius), Offset(center.x, center.y + radius + tickLen), shadowTickStroke)
+    drawLine(shadowColor, Offset(center.x - radius - tickLen, center.y), Offset(center.x - radius, center.y), shadowTickStroke)
+    drawLine(shadowColor, Offset(center.x + radius, center.y), Offset(center.x + radius + tickLen, center.y), shadowTickStroke)
+
+    // 십자선 본체
     drawLine(color, Offset(center.x, center.y - radius - tickLen), Offset(center.x, center.y - radius), tickStroke)
     drawLine(color, Offset(center.x, center.y + radius), Offset(center.x, center.y + radius + tickLen), tickStroke)
     drawLine(color, Offset(center.x - radius - tickLen, center.y), Offset(center.x - radius, center.y), tickStroke)

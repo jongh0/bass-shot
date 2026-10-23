@@ -182,6 +182,7 @@ fun BassShotScreen(
                         if (!uiState.isImportedPhoto) {
                             TimemarkOverlay(
                                 environmentData = uiState.environmentData,
+                                hasMeasurementOverlay = false,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -248,6 +249,7 @@ fun BassShotScreen(
                         if (!uiState.isImportedPhoto) {
                             TimemarkOverlay(
                                 environmentData = uiState.environmentData,
+                                hasMeasurementOverlay = showMeasurement,
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -435,14 +437,14 @@ fun BassShotScreen(
                                     )
                                 }
 
-                                // 갤러리 저장 상태 / 보정 완료 저장 버튼
-                                val isManualModified = uiState.isManualMeasurementEnabled
+                                // 수동 갤러리 저장 버튼
+                                val isAlreadySaved = uiState.savedPhotoUriString != null
                                 Row(
                                     modifier = Modifier
                                         .weight(1f)
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(TitaniumSilver)
-                                        .clickable { viewModel.saveCurrentResult() }
+                                        .clickable(enabled = !uiState.isSaving) { viewModel.saveCurrentResult() }
                                         .padding(vertical = 12.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
@@ -457,8 +459,8 @@ fun BassShotScreen(
                                     Text(
                                         text = when {
                                             uiState.isSaving -> "저장 중..."
-                                            isManualModified -> "수정본 저장"
-                                            else -> "갤러리 자동 저장됨"
+                                            isAlreadySaved -> "저장 완료"
+                                            else -> "저장"
                                         },
                                         color = ObsidianBlack,
                                         fontSize = 13.5.sp,

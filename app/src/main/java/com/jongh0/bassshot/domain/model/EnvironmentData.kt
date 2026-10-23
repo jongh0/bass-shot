@@ -43,7 +43,13 @@ data class EnvironmentData(
      * 우상단 날씨 3줄 표시 전용: 1줄 날씨/기온
      */
     fun formattedWeatherLine1(): String {
-        val desc = weatherDescription?.takeIf { it.isNotBlank() } ?: "날씨 확인 중"
+        val rawDesc = weatherDescription?.takeIf { it.isNotBlank() } ?: "날씨 확인 중"
+        // OpenWeatherMap의 기술적 번역('온흐림'=overcast clouds, '튼구름'=broken clouds)을 친숙한 일상 표현으로 정제
+        val desc = when (rawDesc) {
+            "온흐림" -> "흐림"
+            "튼구름" -> "구름많음"
+            else -> rawDesc
+        }
         val temp = if (tempCelsius != null) " ${tempCelsius.toInt()}°C" else ""
         return "$desc$temp"
     }
@@ -70,7 +76,12 @@ data class EnvironmentData(
 
         val weatherPart = buildString {
             if (!weatherDescription.isNullOrBlank()) {
-                append(weatherDescription)
+                val desc = when (weatherDescription) {
+                    "온흐림" -> "흐림"
+                    "튼구름" -> "구름많음"
+                    else -> weatherDescription
+                }
+                append(desc)
                 append(" ")
             }
             if (tempCelsius != null) {
