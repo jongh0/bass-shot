@@ -18,12 +18,14 @@ import androidx.core.content.ContextCompat
 import com.jongh0.bassshot.R
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.EnvironmentData
+import com.jongh0.bassshot.domain.model.PressureLevel
 
 object HighResCanvasCompositor {
 
     private const val COLOR_OPTICAL_WHITE = "#FFFFFF"
     private const val COLOR_ELECTRIC_CYAN = "#00E5FF"
     private const val COLOR_NEON_LIME = "#A3E635"
+    private const val COLOR_SUN_AMBER = "#FBBF24"
     private const val COLOR_WARM_GRAPHITE = "#9496A1"
     private const val COLOR_MUTED_SILVER = "#C4C7D0"
 
@@ -388,8 +390,24 @@ object HighResCanvasCompositor {
         drawVector(context, canvas, R.drawable.ic_wind, iconX, row2Y, iconSize, iconTint)
         canvas.drawText(wLine2, textX, row2Y + lineHeight - 3f * scaleDp, wPaint)
 
-        drawVector(context, canvas, R.drawable.ic_barometer, iconX, row3Y, iconSize, iconTint)
-        canvas.drawText(wLine3, textX, row3Y + lineHeight - 3f * scaleDp, wPaint)
+        // 3줄: 기압 (저기압: ElectricCyan, 고기압: SunAmber, 평균: OpticalWhite)
+        val pressureColorHex = when (env.pressureLevel) {
+            PressureLevel.LOW -> COLOR_ELECTRIC_CYAN
+            PressureLevel.HIGH -> COLOR_SUN_AMBER
+            PressureLevel.NORMAL -> COLOR_OPTICAL_WHITE
+        }
+        val pressureColorInt = Color.parseColor(pressureColorHex)
+        val pressureIconTint = if (env.pressureLevel == PressureLevel.NORMAL) iconTint else pressureColorInt
+
+        val pressurePaint = Paint(wPaint).apply {
+            color = pressureColorInt
+            if (env.pressureLevel != PressureLevel.NORMAL) {
+                typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
+            }
+        }
+
+        drawVector(context, canvas, R.drawable.ic_barometer, iconX, row3Y, iconSize, pressureIconTint)
+        canvas.drawText(wLine3, textX, row3Y + lineHeight - 3f * scaleDp, pressurePaint)
 
         // 2. 우측 미니 지도 크기 및 텍스트 허용 너비 계산
         val hasMap = env.staticMapBitmap != null

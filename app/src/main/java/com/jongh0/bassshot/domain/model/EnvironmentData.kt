@@ -3,6 +3,15 @@ package com.jongh0.bassshot.domain.model
 import android.graphics.Bitmap
 
 /**
+ * 배스 낚시 기준 기압 레벨 분류
+ */
+enum class PressureLevel {
+    LOW,    // 저기압 (<= 1010 hPa): 활성도 상승 / 피딩 찬스 (Electric Cyan)
+    NORMAL, // 평균 기압 (1011..1014 hPa): 안정 / 평온 (Optical White)
+    HIGH    // 고기압 (>= 1015 hPa): 맑음 / 깊은 수심 및 커버 (Sun Amber)
+}
+
+/**
  * 실시간 카메라 프리뷰 및 최종 캡처본에 오버레이될 환경 데이터
  */
 data class EnvironmentData(
@@ -19,6 +28,19 @@ data class EnvironmentData(
     val latitude: Double? = null,
     val longitude: Double? = null
 ) {
+    /**
+     * 배스 낚시 기준 기압 단계 판정
+     */
+    val pressureLevel: PressureLevel
+        get() {
+            val p = pressureHpa ?: return PressureLevel.NORMAL
+            val rounded = Math.round(p)
+            return when {
+                rounded <= 1010 -> PressureLevel.LOW
+                rounded >= 1015 -> PressureLevel.HIGH
+                else -> PressureLevel.NORMAL
+            }
+        }
     /**
      * 날짜 및 요일 한 줄 조합: "2026년 10월 21일 (금요일)"
      */

@@ -39,8 +39,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.R
 import com.jongh0.bassshot.domain.model.EnvironmentData
+import com.jongh0.bassshot.domain.model.PressureLevel
+import com.jongh0.bassshot.ui.theme.ElectricCyan
 import com.jongh0.bassshot.ui.theme.FrostedGlassBg
 import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.SunAmber
 
 @Composable
 fun TimemarkOverlay(
@@ -129,7 +132,17 @@ fun TimemarkOverlay(
                     )
                 }
 
-                // 3줄: 기압
+                // 3줄: 기압 (저기압: ElectricCyan, 고기압: SunAmber, 평균: OpticalWhite)
+                val pressureColor = when (environmentData.pressureLevel) {
+                    PressureLevel.LOW -> ElectricCyan
+                    PressureLevel.HIGH -> SunAmber
+                    PressureLevel.NORMAL -> OpticalWhite
+                }
+                val barometerIconTint = when (environmentData.pressureLevel) {
+                    PressureLevel.NORMAL -> Color(0xCCFFFFFF)
+                    else -> pressureColor
+                }
+
                 Row(
                     modifier = Modifier.height(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -138,7 +151,7 @@ fun TimemarkOverlay(
                     Icon(
                         painter = painterResource(R.drawable.ic_barometer),
                         contentDescription = null,
-                        tint = Color(0xCCFFFFFF),
+                        tint = barometerIconTint,
                         modifier = Modifier.size(15.dp)
                     )
                     Text(
@@ -147,11 +160,11 @@ fun TimemarkOverlay(
                         overflow = TextOverflow.Ellipsis,
                         style = TextStyle(
                             fontFamily = FontFamily.SansSerif,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = if (environmentData.pressureLevel != PressureLevel.NORMAL) FontWeight.SemiBold else FontWeight.Medium,
                             fontSize = 12.sp,
                             lineHeight = 16.sp
                         ),
-                        color = OpticalWhite
+                        color = pressureColor
                     )
                 }
             }

@@ -19,9 +19,10 @@ val SafetyOrange = Color(0xFFFF9800) // 계측 오류 제보 포인트 오렌지
 val GunmetalGrey = Color(0xFF32343A)
 
 // Nano Banana Modern HUD Accents
-val ElectricCyan = Color(0xFF00E5FF) // 일렉트릭 사이언 (캘리퍼 브래킷, 중앙 대시선)
+val ElectricCyan = Color(0xFF00E5FF) // 일렉트릭 사이언 (캘리퍼 브래킷, 중앙 대시선, 저기압 포인트)
 val ElectricCyanGlow = Color(0x6600E5FF) // 사이언 글로우 아우라
 val NeonLime = Color(0xFFA3E635) // 네온 라임 ("길이", "35.2 cm")
+val SunAmber = Color(0xFFFBBF24) // 고기압 골든 앰버 포인트
 val FrostedGlassBg = Color(0x38000000) // 프로스티드 글래스 반투명 배경
 val FrostedGlassBorder = Color(0x28FFFFFF) // 은은한 글래스 헤어라인 보더
 val PillBadgeBg = Color(0xB3082F49) // 중앙 계측 캡슐 알약 배경
