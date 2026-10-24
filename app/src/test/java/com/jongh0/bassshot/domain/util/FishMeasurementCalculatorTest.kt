@@ -11,13 +11,17 @@ class FishMeasurementCalculatorTest {
 
     @Test
     fun testWeightFormula_standardBass() {
-        // L = 40cm, G = 10cm -> W = 0.045 * 40 * 100 = 180g
-        val weight = FishMeasurementCalculator.calculateWeightGrams(40f, 10f)
-        assertEquals(180, weight)
+        // L = 32.2cm, G = 8.0cm -> W = 0.208 * 32.2 * 64 = 428.7 -> 429g
+        val userBassWeight = FishMeasurementCalculator.calculateWeightGrams(32.2f, 8.0f)
+        assertEquals(429, userBassWeight)
 
-        // L = 50cm, G = 15cm (런커 배스) -> W = 0.045 * 50 * 225 = 506.25 -> 506g
-        val lunkerWeight = FishMeasurementCalculator.calculateWeightGrams(50f, 15f)
-        assertEquals(506, lunkerWeight)
+        // L = 40cm, G = 10cm -> W = 0.208 * 40 * 100 = 832g
+        val weight = FishMeasurementCalculator.calculateWeightGrams(40f, 10f)
+        assertEquals(832, weight)
+
+        // L = 50cm, G = 14cm (런커 배스) -> W = 0.208 * 50 * 196 = 2038g
+        val lunkerWeight = FishMeasurementCalculator.calculateWeightGrams(50f, 14f)
+        assertEquals(2038, lunkerWeight)
     }
 
     @Test
@@ -26,7 +30,7 @@ class FishMeasurementCalculatorTest {
             isBassDetected = true,
             lengthCm = 35.0f,
             girthCm = 9.0f,
-            weightG = 128,
+            weightG = 590,
             snoutPoint = NormalizedPoint(0.5f, 0.2f),
             tailPoint = NormalizedPoint(0.5f, 0.8f)
         )
@@ -36,7 +40,7 @@ class FishMeasurementCalculatorTest {
         assertFalse(uiModel.isManualFallback)
         assertEquals(35.0f, uiModel.lengthCm, 0.1f)
         assertEquals(9.0f, uiModel.girthCm, 0.1f)
-        assertEquals(128, uiModel.weightG)
+        assertEquals(590, uiModel.weightG)
     }
 
     @Test

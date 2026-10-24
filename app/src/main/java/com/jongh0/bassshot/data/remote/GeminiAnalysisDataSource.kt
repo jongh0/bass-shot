@@ -98,8 +98,8 @@ class GeminiAnalysisDataSource {
                 
                 [수치 산출]
                 - length_cm: 주먹 높이와 배스 전장 비율을 계산한 실제 길이 (소수점 첫째 자리까지)
-                - girth_cm: 배스 최대 체고 폭 (20cm대 배스는 통상 4.5~6.5cm 수준)
-                - weight_g: 어류학 공식 W = 0.045 * length_cm * (girth_cm ^ 2) 로 계산하여 정수 반올림
+                - girth_cm: 배스 최대 체고 폭 (20cm대 배스는 통상 4.5~6.5cm, 30cm대 배스는 통상 7.5~9.5cm 수준)
+                - weight_g: 배스 체장-체고 생체역학 공식 W = 0.208 * length_cm * (girth_cm ^ 2) 로 계산하여 정수 반올림 (예: 32cm, 체고 8cm일 때 약 430g 내외)
                 - 모든 좌표 x, y는 전체 이미지 가로/세로 대비 상대 비율 (0.0 ~ 1.0)
             """.trimIndent()
 

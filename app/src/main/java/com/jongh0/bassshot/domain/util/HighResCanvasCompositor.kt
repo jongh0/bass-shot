@@ -21,6 +21,12 @@ object HighResCanvasCompositor {
     private const val COLOR_WARM_GRAPHITE = "#9496A1"
     private const val COLOR_MUTED_SILVER = "#C4C7D0"
 
+    // 화면(MeasurementOverlay, TimemarkOverlay)의 textShadow(blurRadius=6px, offset=0,2px)와
+    // 1:1로 시각적 매칭되는 은은하고 부드러운 텍스트 그림자 스케일 (화면과 동일한 얇고 자연스러운 음영)
+    private const val TEXT_SHADOW_RADIUS_DP = 2.0f
+    private const val TEXT_SHADOW_OFFSET_Y_DP = 0.67f
+    private val TEXT_SHADOW_COLOR = Color.argb(135, 0, 0, 0)
+
     /**
      * 원본 해상도 비트맵 위에 고화질 타임마크와 계측선을 직접 합성
      * @param containerWidthDp 화면(Compose)에서 이미지가 표시된 컨테이너의 실제 dp 폭 (예: 360f, 390f, 411f)
@@ -79,18 +85,22 @@ object HighResCanvasCompositor {
         val tailX = measurement.tailPoint.x * width
         val tailY = measurement.tailPoint.y * height
 
-        // 주 캘리퍼스 가이드라인 (크리스프 옵티컬 화이트 + 외곽 그림자)
+        // 주 캘리퍼스 가이드라인 (배스를 과도하게 가리지 않는 가볍고 섬세한 점선)
+        val dashOn = 5f * scaleDp
+        val dashOff = 8.5f * scaleDp
+        val lineDash = DashPathEffect(floatArrayOf(dashOn, dashOff), 0f)
+
         val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(190, 0, 0, 0)
-            strokeWidth = 5f * scaleDp
+            color = Color.argb(130, 0, 0, 0)
+            strokeWidth = 3f * scaleDp
             style = Paint.Style.STROKE
-            pathEffect = DashPathEffect(floatArrayOf(16f * scaleDp, 10f * scaleDp), 0f)
+            pathEffect = lineDash
         }
         val mainLinePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_OPTICAL_WHITE)
-            strokeWidth = 2.4f * scaleDp
+            strokeWidth = 1.4f * scaleDp
             style = Paint.Style.STROKE
-            pathEffect = DashPathEffect(floatArrayOf(16f * scaleDp, 10f * scaleDp), 0f)
+            pathEffect = lineDash
         }
 
         canvas.drawLine(snoutX, snoutY, tailX, tailY, shadowPaint)
@@ -127,7 +137,12 @@ object HighResCanvasCompositor {
             textSize = 11.5f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT
-            setShadowLayer(6f * scaleDp, 0f, 2f * scaleDp, Color.argb(220, 0, 0, 0))
+            setShadowLayer(
+                TEXT_SHADOW_RADIUS_DP * scaleDp,
+                0f,
+                TEXT_SHADOW_OFFSET_Y_DP * scaleDp,
+                TEXT_SHADOW_COLOR
+            )
         }
 
         // hasWeatherAbove인 경우: 날씨 3줄 아래에 여유 있는 간격(24dp) 추가
@@ -165,7 +180,12 @@ object HighResCanvasCompositor {
             textSize = 11.5f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT
-            setShadowLayer(6f * scaleDp, 0f, 2f * scaleDp, Color.argb(220, 0, 0, 0))
+            setShadowLayer(
+                TEXT_SHADOW_RADIUS_DP * scaleDp,
+                0f,
+                TEXT_SHADOW_OFFSET_Y_DP * scaleDp,
+                TEXT_SHADOW_COLOR
+            )
         }
 
         val wy1 = wTop + (13f * scaleFont)
@@ -188,7 +208,12 @@ object HighResCanvasCompositor {
             color = Color.parseColor(COLOR_MUTED_SILVER)
             textSize = 11.5f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
-            setShadowLayer(6f * scaleDp, 0f, 2f * scaleDp, Color.argb(220, 0, 0, 0))
+            setShadowLayer(
+                TEXT_SHADOW_RADIUS_DP * scaleDp,
+                0f,
+                TEXT_SHADOW_OFFSET_Y_DP * scaleDp,
+                TEXT_SHADOW_COLOR
+            )
         }
 
         val addressLayout = android.text.StaticLayout.Builder.obtain(
@@ -213,7 +238,12 @@ object HighResCanvasCompositor {
             color = Color.parseColor(COLOR_OPTICAL_WHITE)
             textSize = 13f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
-            setShadowLayer(6f * scaleDp, 0f, 2f * scaleDp, Color.argb(220, 0, 0, 0))
+            setShadowLayer(
+                TEXT_SHADOW_RADIUS_DP * scaleDp,
+                0f,
+                TEXT_SHADOW_OFFSET_Y_DP * scaleDp,
+                TEXT_SHADOW_COLOR
+            )
         }
         val line2Y = addressTopY - (4f * scaleDp)
         if (dateAndDayText.isNotEmpty()) {
@@ -226,7 +256,12 @@ object HighResCanvasCompositor {
             textSize = 38f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             letterSpacing = -0.03f
-            setShadowLayer(6f * scaleDp, 0f, 2f * scaleDp, Color.argb(220, 0, 0, 0))
+            setShadowLayer(
+                TEXT_SHADOW_RADIUS_DP * scaleDp,
+                0f,
+                TEXT_SHADOW_OFFSET_Y_DP * scaleDp,
+                TEXT_SHADOW_COLOR
+            )
         }
         val line1Y = if (dateAndDayText.isNotEmpty()) {
             line2Y - (datePaint.textSize + 3f * scaleDp)

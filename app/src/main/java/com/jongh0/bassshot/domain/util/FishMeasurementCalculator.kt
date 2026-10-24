@@ -10,11 +10,15 @@ import kotlin.math.sqrt
 object FishMeasurementCalculator {
 
     /**
-     * 어류학 체장-체고 기반 무게 산출 공식: W = 0.045 * L * (G^2)
+     * 어류학 배스(Largemouth Bass) 체장-체고 생체역학 기반 무게 산출 공식:
+     * W(g) = 0.208 * length_cm * (body_depth_cm ^ 2)
+     * (평면 체고를 타원 단면 둘레 Girth ≈ 2.45 * H 로 변환한 국제 표준 배스 중량 산출식 적용)
      */
     fun calculateWeightGrams(lengthCm: Float, girthCm: Float): Int {
         if (lengthCm <= 0f || girthCm <= 0f) return 0
-        val weight = 0.045f * lengthCm * girthCm.pow(2)
+        // 체고 유효 범위 안전 보정 (통상 체장의 15% ~ 38% 범위)
+        val validGirth = girthCm.coerceIn(lengthCm * 0.15f, lengthCm * 0.38f)
+        val weight = 0.208f * lengthCm * validGirth.pow(2)
         return weight.roundToInt().coerceAtLeast(10)
     }
 

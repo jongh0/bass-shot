@@ -143,21 +143,23 @@ fun MeasurementOverlay(
             val snoutPx = Offset(measurement.snoutPoint.x * widthPx, measurement.snoutPoint.y * heightPx)
             val tailPx = Offset(measurement.tailPoint.x * widthPx, measurement.tailPoint.y * heightPx)
 
-            val mainDash = PathEffect.dashPathEffect(floatArrayOf(16f, 10f), 0f)
+            val dashOn = with(density) { 5.dp.toPx() }
+            val dashOff = with(density) { 8.5.dp.toPx() }
+            val mainDash = PathEffect.dashPathEffect(floatArrayOf(dashOn, dashOff), 0f)
 
-            // 1. 주 캘리퍼스 가이드라인 (크리스프 옵티컬 화이트 + 딥 블랙 섀도우)
+            // 1. 주 캘리퍼스 가이드라인 (배스를 가리지 않는 가볍고 섬세한 점선)
             drawLine(
-                color = Color(0xC0000000),
+                color = Color(0x8C000000),
                 start = snoutPx,
                 end = tailPx,
-                strokeWidth = 5f,
+                strokeWidth = with(density) { 3.dp.toPx() },
                 pathEffect = mainDash
             )
             drawLine(
                 color = OpticalWhite,
                 start = snoutPx,
                 end = tailPx,
-                strokeWidth = 2.4f,
+                strokeWidth = with(density) { 1.4.dp.toPx() },
                 pathEffect = mainDash
             )
 
