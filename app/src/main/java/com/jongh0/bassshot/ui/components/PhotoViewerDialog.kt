@@ -94,7 +94,9 @@ fun PhotoViewerDialog(
             .background(Color.Black)
     ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                // 1. 상단 탑바 (닫기 버튼 및 페이지 인디케이터)
+                val currentPhoto = photos.getOrNull(pagerState.currentPage)
+
+                // 1. 상단 탑바 (닫기 버튼, 페이지 인디케이터, 우상단 오류 제보 버튼)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -122,8 +124,22 @@ fun PhotoViewerDialog(
                         fontWeight = FontWeight.SemiBold
                     )
 
-                    // 우측 균형용 투명 스페이서
-                    Spacer(modifier = Modifier.size(40.dp))
+                    // 우상단 오류 제보 버튼 (다른 화면 우상단 버그 버튼과 동일)
+                    if (onReportIssue != null && currentPhoto != null) {
+                        IconButton(
+                            onClick = { onReportIssue(currentPhoto) },
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.BugReport,
+                                contentDescription = "계측 오류 제보",
+                                tint = SafetyOrange
+                            )
+                        }
+                    } else {
+                        // 우측 균형용 투명 스페이서
+                        Spacer(modifier = Modifier.size(40.dp))
+                    }
                 }
 
                 // 2. 중앙 이미지 스와이프 페이저
@@ -167,8 +183,6 @@ fun PhotoViewerDialog(
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val currentPhoto = photos.getOrNull(pagerState.currentPage)
-
                         // [액션 1] 카카오톡 전송 버튼 (실제 카카오톡 공식 브랜드 아이콘)
                         Box(
                             modifier = Modifier
@@ -252,28 +266,6 @@ fun PhotoViewerDialog(
                                     imageVector = Icons.Default.Straighten,
                                     contentDescription = "AI 계측하기",
                                     tint = OpticalWhite,
-                                    modifier = Modifier.size(22.dp)
-                                )
-                            }
-                        }
-
-                        // [액션 3.5] 오류 제보 버튼 (기저장된 사진에 대해 오류 제보)
-                        if (onReportIssue != null && currentPhoto != null) {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(AnodizedCharcoal)
-                                    .border(1.dp, SubtleTitanium, CircleShape)
-                                    .clickable {
-                                        onReportIssue(currentPhoto)
-                                    },
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.BugReport,
-                                    contentDescription = "오류 제보",
-                                    tint = SafetyOrange,
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
