@@ -1,7 +1,5 @@
 package com.jongh0.bassshot.ui.components
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -20,7 +18,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
@@ -42,7 +39,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -73,7 +69,6 @@ fun IssueReportDialog(
     onDismissRequest: () -> Unit,
     onSubmit: (comment: String, actualLength: Float?, actualWeight: Int?, includeLogs: Boolean) -> Unit
 ) {
-    val context = LocalContext.current
     var comment by remember { mutableStateOf("") }
     var actualLengthStr by remember { mutableStateOf("") }
     var actualWeightStr by remember { mutableStateOf("") }
@@ -173,58 +168,23 @@ fun IssueReportDialog(
 
                         Spacer(modifier = Modifier.height(20.dp))
 
+                        // 확인 버튼
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(TitaniumSilver)
+                                .clickable { onDismissRequest() }
+                                .padding(vertical = 12.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            // 브라우저에서 보기 버튼
-                            Row(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(SafetyOrange)
-                                    .clickable {
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(createdIssueUrl))
-                                        context.startActivity(intent)
-                                    }
-                                    .padding(vertical = 12.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                                    contentDescription = null,
-                                    tint = ObsidianBlack,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text(
-                                    text = "GitHub에서 보기",
-                                    color = ObsidianBlack,
-                                    fontSize = 13.5.sp,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            }
-
-                            // 닫기 버튼
-                            Row(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(AnodizedCharcoal)
-                                    .border(1.dp, SubtleTitanium, RoundedCornerShape(8.dp))
-                                    .clickable { onDismissRequest() }
-                                    .padding(vertical = 12.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "닫기",
-                                    color = TitaniumSilver,
-                                    fontSize = 13.5.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
+                            Text(
+                                text = "확인",
+                                color = ObsidianBlack,
+                                fontSize = 13.5.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                     return@Column
