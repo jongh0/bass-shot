@@ -755,7 +755,9 @@ fun BassShotScreen(
                 createdIssueUrl = uiState.lastCreatedIssueUrl,
                 errorMessage = uiState.errorMessage,
                 hasMeasurement = (uiState.issueReportMeasurement ?: uiState.measurement) != null,
-                hasOriginalPhoto = uiState.issueReportOriginalBitmap != null || (uiState.appState == AppState.RESULT_SAVED && !uiState.isImportedPhoto),
+                hasOriginalPhoto = uiState.issueReportOriginalBitmap != null,
+                hasCompositePhoto = uiState.issueReportCompositeBitmap != null,
+                hasEnvironmentData = uiState.issueReportEnvironmentData != null,
                 onDismissRequest = { viewModel.dismissIssueReportDialog() },
                 onSubmit = { comment, actualLength, actualWeight, includeLogs ->
                     viewModel.submitIssueReport(

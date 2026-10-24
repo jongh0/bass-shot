@@ -66,7 +66,9 @@ fun IssueReportDialog(
     createdIssueUrl: String?,
     errorMessage: String?,
     hasMeasurement: Boolean,
-    hasOriginalPhoto: Boolean = true,
+    hasOriginalPhoto: Boolean = false,
+    hasCompositePhoto: Boolean = false,
+    hasEnvironmentData: Boolean = false,
     onDismissRequest: () -> Unit,
     onSubmit: (comment: String, actualLength: Float?, actualWeight: Int?, includeLogs: Boolean) -> Unit
 ) {
@@ -231,7 +233,11 @@ fun IssueReportDialog(
 
                 // 5. 안내 설명
                 Text(
-                    text = "발생한 문제점을 간단히 적어주시면 사진, 계측 데이터, 시스템 로그와 함께 전송되어 AI 정확도 개선에 반영됩니다.",
+                    text = when (reportType) {
+                        IssueReportType.GENERAL -> "발생한 문제나 건의사항을 적어주시면 기기 사양 정보 및 시스템 동작 로그와 함께 개발팀에 전달됩니다."
+                        IssueReportType.SAVED_PHOTO -> "사진의 계측 오류나 문제점을 적어주시면 사진 및 메타데이터와 함께 전달되어 AI 정확도 개선에 반영됩니다."
+                        else -> "발생한 문제점을 간단히 적어주시면 촬영 사진, 계측 데이터, 시스템 로그와 함께 전달되어 AI 정확도 개선에 반영됩니다."
+                    },
                     color = WarmGraphite,
                     fontSize = 12.5.sp,
                     lineHeight = 17.sp
@@ -347,14 +353,19 @@ fun IssueReportDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = "자동 첨부:", color = WarmGraphite, fontSize = 11.sp)
-                    if (hasOriginalPhoto) {
+                    if (hasOriginalPhoto && hasCompositePhoto) {
                         Text(text = "📷 원본", color = MutedSilver, fontSize = 11.sp)
-                        if (hasMeasurement) Text(text = "📏 계측본", color = MutedSilver, fontSize = 11.sp)
-                    } else {
+                        Text(text = "📏 계측본", color = MutedSilver, fontSize = 11.sp)
+                    } else if (hasOriginalPhoto || hasCompositePhoto) {
                         Text(text = "📷 사진", color = MutedSilver, fontSize = 11.sp)
                     }
+                    if (hasMeasurement) {
+                        Text(text = "🤖 계측데이터", color = MutedSilver, fontSize = 11.sp)
+                    }
+                    if (hasEnvironmentData) {
+                        Text(text = "🌦️ 환경스펙", color = MutedSilver, fontSize = 11.sp)
+                    }
                     Text(text = "📱 기기정보", color = MutedSilver, fontSize = 11.sp)
-                    Text(text = "🌦️ 환경스펙", color = MutedSilver, fontSize = 11.sp)
                 }
 
                 // 9. 로그 포함 체크박스

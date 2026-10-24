@@ -614,14 +614,16 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
      */
     fun openIssueReportDialog(type: IssueReportType = IssueReportType.MEASUREMENT_INACCURATE) {
         val currentState = _uiState.value
+        val isGeneral = (type == IssueReportType.GENERAL)
         _uiState.update {
             it.copy(
                 showIssueReportDialog = true,
                 issueReportType = type,
-                issueReportOriginalBitmap = currentState.capturedOriginalBitmap,
+                // 일반 피드백일 때는 촬영 사진이나 계측 데이터를 자동으로 첨부하지 않고 기기정보/로그만 전송
+                issueReportOriginalBitmap = if (isGeneral) null else currentState.capturedOriginalBitmap,
                 issueReportCompositeBitmap = null,
-                issueReportEnvironmentData = currentState.environmentData,
-                issueReportMeasurement = currentState.measurement,
+                issueReportEnvironmentData = if (isGeneral) null else currentState.environmentData,
+                issueReportMeasurement = if (isGeneral) null else currentState.measurement,
                 lastCreatedIssueUrl = null,
                 issueSubmitProgress = null
             )
