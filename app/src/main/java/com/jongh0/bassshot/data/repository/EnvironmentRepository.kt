@@ -16,6 +16,7 @@ import com.jongh0.bassshot.data.local.UserPreferencesRepository
 import com.jongh0.bassshot.data.remote.StaticMapDownloader
 import com.jongh0.bassshot.data.remote.WeatherApiService
 import com.jongh0.bassshot.domain.model.EnvironmentData
+import com.jongh0.bassshot.domain.util.AppLogger
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -96,6 +97,7 @@ class EnvironmentRepository(
 
         if (!hasLocationPermission) {
             // 위치 권한이 없는 경우: 내장 기압계만 확인 후 반환
+            AppLogger.d("Environment", "Location permission not granted, checking sensor barometer only")
             val sensorPressure = readSensorPressure()
             return@coroutineScope EnvironmentData(
                 timeFormatted = timeStr,
@@ -113,6 +115,7 @@ class EnvironmentRepository(
 
         if (location == null) {
             // 위치 획득 실패 시 캐시된 정보 사용
+            AppLogger.w("Environment", "Failed to get current location within timeout, using cached environment")
             val cached = userPreferencesRepository.userPreferencesFlow.firstOrNull()
             val sensorPressure = readSensorPressure() ?: cached?.cachedPressureHpa
             return@coroutineScope EnvironmentData(
@@ -131,6 +134,7 @@ class EnvironmentRepository(
 
         val lat = location.latitude
         val lon = location.longitude
+        AppLogger.i("Environment", "Location acquired: ($lat, $lon)")
 
         // 2. 비동기 병렬 수집: 주소 변환, 날씨 API, 내장 기압 센서, 정적 미니맵
         val addressDeferred = async(Dispatchers.IO) { reverseGeocode(lat, lon) }
@@ -249,6 +253,7 @@ class EnvironmentRepository(
         try {
             weatherApiService.getCurrentWeather(lat, lon, apiKey)
         } catch (e: Exception) {
+            AppLogger.w("Environment", "Weather API request failed: ${e.message}")
             null
         }
     }

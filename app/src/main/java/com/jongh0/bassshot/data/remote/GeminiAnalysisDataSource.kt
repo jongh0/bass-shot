@@ -8,6 +8,7 @@ import com.google.ai.client.generativeai.type.content
 import com.google.ai.client.generativeai.type.generationConfig
 import com.jongh0.bassshot.BuildConfig
 import com.jongh0.bassshot.domain.model.BassMeasurementDto
+import com.jongh0.bassshot.domain.util.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
@@ -105,6 +106,8 @@ class GeminiAnalysisDataSource {
 
             runCatching {
                 withTimeout(35_000L) {
+                    val startTime = System.currentTimeMillis()
+                    AppLogger.i("GeminiAI", "Starting AI measurement analysis (bitmap: ${resizedBitmap.width}x${resizedBitmap.height}, handWidth: ${referenceHandWidthCm}cm)")
                     val responseText = try {
                         createModel("gemini-3.5-flash").generateContent(
                             content {
@@ -113,6 +116,7 @@ class GeminiAnalysisDataSource {
                             }
                         ).text
                     } catch (e: Exception) {
+                        AppLogger.w("GeminiAI", "Primary model (gemini-3.5-flash) failed, falling back to gemini-3.5-flash-lite: ${e.message}")
                         createModel("gemini-3.5-flash-lite").generateContent(
                             content {
                                 image(resizedBitmap)
@@ -128,8 +132,16 @@ class GeminiAnalysisDataSource {
                         .removeSuffix("```")
                         .trim()
 
-                    json.decodeFromString<BassMeasurementDto>(cleanedJson)
+                    val result = json.decodeFromString<BassMeasurementDto>(cleanedJson)
+                    val duration = System.currentTimeMillis() - startTime
+                    AppLogger.i(
+                        "GeminiAI",
+                        "AI analysis completed in ${duration}ms (detected: ${result.isBassDetected}, length: ${result.lengthCm}cm, weight: ${result.weightG}g)"
+                    )
+                    result
                 }
+            }.onFailure { e ->
+                AppLogger.e("GeminiAI", "AI measurement failed: ${e.message}", e)
             }
         }
 }

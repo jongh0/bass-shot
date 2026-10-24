@@ -20,6 +20,7 @@ import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.BassShotUiState
 import com.jongh0.bassshot.domain.model.CameraMode
 import com.jongh0.bassshot.domain.model.SavedPhotoItem
+import com.jongh0.bassshot.domain.util.AppLogger
 import com.jongh0.bassshot.domain.util.BitmapProcessor
 import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
 import com.jongh0.bassshot.domain.util.HighResCanvasCompositor
@@ -85,6 +86,7 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
      */
     fun setCameraMode(mode: CameraMode) {
         if (_uiState.value.cameraMode == mode) return
+        AppLogger.i("ViewModel", "Switching camera mode to: $mode")
         _uiState.update { it.copy(cameraMode = mode) }
         viewModelScope.launch {
             userPreferencesRepository.updateCameraMode(mode.name)
@@ -147,11 +149,13 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
         _shutterFlashEvent.tryEmit(Unit)
 
         val currentMode = _uiState.value.cameraMode
+        AppLogger.i("ViewModel", "Shutter clicked in mode: $currentMode")
         val executor = ContextCompat.getMainExecutor(getApplication())
         cameraController.takePicture(
             executor,
             object : ImageCapture.OnImageCapturedCallback() {
                 override fun onCaptureSuccess(image: ImageProxy) {
+                    AppLogger.d("ViewModel", "Image capture success (format: ${image.format}, ${image.width}x${image.height})")
                     if (currentMode == CameraMode.NORMAL) {
                         handleNormalCaptureSuccess(image, containerWidthDp, fontScale)
                     } else {
@@ -161,6 +165,7 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
 
                 override fun onError(exception: androidx.camera.core.ImageCaptureException) {
                     isCapturing.set(false)
+                    AppLogger.e("ViewModel", "Camera takePicture failed: ${exception.message}", exception)
                     _uiState.update { current ->
                         current.copy(errorMessage = "촬영에 실패했습니다: ${exception.localizedMessage}")
                     }
@@ -217,6 +222,7 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                 }
             } catch (e: Exception) {
                 isCapturing.set(false)
+                AppLogger.e("ViewModel", "Normal capture background processing failed: ${e.message}", e)
                 _uiState.update { current ->
                     current.copy(errorMessage = "사진 저장 중 오류가 발생했습니다: ${e.localizedMessage}")
                 }
@@ -268,6 +274,7 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                     )
                 }
             } catch (e: Exception) {
+                AppLogger.e("ViewModel", "Measurement capture/analysis failed: ${e.message}", e)
                 _uiState.update { current ->
                     current.copy(
                         isAnalyzing = false,
@@ -387,6 +394,7 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
         val isImported = _uiState.value.isImportedPhoto
 
         viewModelScope.launch(Dispatchers.Default) {
+            AppLogger.i("ViewModel", "saveCurrentResult started (isImported: $isImported, containerWidthDp: $containerWidthDp)")
             _uiState.update { it.copy(isSaving = true) }
 
             // 원본 해상도 Canvas 직접 합성 (화면과 1:1 동일한 scaleDp 및 fontScale 반영)

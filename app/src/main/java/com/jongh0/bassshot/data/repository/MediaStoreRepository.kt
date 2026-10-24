@@ -11,6 +11,7 @@ import android.provider.MediaStore
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.EnvironmentData
 import com.jongh0.bassshot.domain.model.SavedPhotoItem
+import com.jongh0.bassshot.domain.util.AppLogger
 import com.jongh0.bassshot.domain.util.FishExifHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -40,6 +41,7 @@ class MediaStoreRepository(private val context: Context) {
         runCatching {
             val timestamp = dateFormat.format(Date())
             val compositeFilename = "BASS_${timestamp}.jpg"
+            AppLogger.i("MediaStore", "Saving composite photo: $compositeFilename (saveOriginal: $saveOriginalPhoto)")
 
             // 1. 합성본 저장 + EXIF 주입
             val compositeUri = saveBitmapToMediaStore(
@@ -49,20 +51,24 @@ class MediaStoreRepository(private val context: Context) {
                 environmentData = environmentData,
                 measurement = measurement
             ) ?: throw IllegalStateException("합성본 MediaStore 저장에 실패했습니다.")
+            AppLogger.i("MediaStore", "Composite photo saved successfully: $compositeUri")
 
             // 2. 사용자가 원본 저장을 켠 경우, 원본 사진 백업 + EXIF 주입
             if (saveOriginalPhoto && originalBitmap != null) {
                 val originalFilename = "BASS_${timestamp}_ORIG.jpg"
-                saveBitmapToMediaStore(
+                val origUri = saveBitmapToMediaStore(
                     bitmap = originalBitmap,
                     filename = originalFilename,
                     subDirectory = "DCIM/BassShot",
                     environmentData = environmentData,
                     measurement = measurement
                 )
+                AppLogger.i("MediaStore", "Original photo backup saved: $origUri")
             }
 
             compositeUri.toString()
+        }.onFailure { e ->
+            AppLogger.e("MediaStore", "Failed to save photos: ${e.message}", e)
         }
     }
 
@@ -193,7 +199,7 @@ class MediaStoreRepository(private val context: Context) {
                 }
             }
         } catch (e: Exception) {
-            e.printStackTrace()
+            AppLogger.e("MediaStore", "Error querying BassShot photos: ${e.message}", e)
         }
 
         photoList
@@ -204,10 +210,14 @@ class MediaStoreRepository(private val context: Context) {
      */
     suspend fun deletePhoto(uri: Uri): Result<Unit> = withContext(Dispatchers.IO) {
         runCatching {
+            AppLogger.i("MediaStore", "Deleting photo: $uri")
             val rowsDeleted = context.contentResolver.delete(uri, null, null)
             if (rowsDeleted <= 0) {
                 throw IllegalStateException("사진 삭제에 실패했습니다.")
             }
+            AppLogger.i("MediaStore", "Photo deleted successfully: $uri")
+        }.onFailure { e ->
+            AppLogger.e("MediaStore", "Failed to delete photo: $uri", e)
         }
     }
 }

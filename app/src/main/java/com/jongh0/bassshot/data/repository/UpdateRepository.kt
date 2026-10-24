@@ -13,6 +13,7 @@ import androidx.core.content.FileProvider
 import com.jongh0.bassshot.BuildConfig
 import com.jongh0.bassshot.data.remote.GitHubReleaseApiService
 import com.jongh0.bassshot.data.remote.GitHubReleaseDto
+import com.jongh0.bassshot.domain.util.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -55,13 +56,16 @@ class UpdateRepository(private val context: Context) {
 
             val latestVersion = release.tagName.removePrefix("v").trim()
             val currentVersion = BuildConfig.VERSION_NAME.removePrefix("v").trim()
+            val isNewer = isNewerVersion(latestVersion, currentVersion)
+            AppLogger.i("Update", "Checked GitHub release: latest=$latestVersion, current=$currentVersion, updateAvailable=$isNewer")
 
-            if (isNewerVersion(latestVersion, currentVersion)) {
+            if (isNewer) {
                 release
             } else {
                 null
             }
         } catch (e: Exception) {
+            AppLogger.w("Update", "Failed to check for updates: ${e.message}")
             null
         }
     }
