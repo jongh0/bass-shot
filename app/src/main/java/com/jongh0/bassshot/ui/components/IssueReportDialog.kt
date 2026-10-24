@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -39,8 +40,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -84,6 +88,7 @@ fun IssueReportDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.92f)
+                .heightIn(max = 660.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(ObsidianBlack)
                 .border(1.dp, SubtleTitanium, RoundedCornerShape(16.dp))
@@ -343,29 +348,44 @@ fun IssueReportDialog(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 // 8. 자동 포함 데이터 배너
-                Row(
+                val autoAttachText = remember(hasOriginalPhoto, hasCompositePhoto, hasMeasurement, hasEnvironmentData) {
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(color = WarmGraphite, fontWeight = FontWeight.Medium)) {
+                            append("자동 첨부: ")
+                        }
+                        val items = mutableListOf<String>()
+                        if (hasOriginalPhoto && hasCompositePhoto) {
+                            items.add("📷\u00A0원본")
+                            items.add("📏\u00A0계측본")
+                        } else if (hasOriginalPhoto || hasCompositePhoto) {
+                            items.add("📷\u00A0사진")
+                        }
+                        if (hasMeasurement) {
+                            items.add("🤖\u00A0계측데이터")
+                        }
+                        if (hasEnvironmentData) {
+                            items.add("🌦️\u00A0환경스펙")
+                        }
+                        items.add("📱\u00A0기기정보")
+
+                        withStyle(SpanStyle(color = MutedSilver)) {
+                            append(items.joinToString("   "))
+                        }
+                    }
+                }
+
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(6.dp))
                         .background(SmokeGlass)
-                        .padding(horizontal = 10.dp, vertical = 7.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .padding(horizontal = 10.dp, vertical = 7.dp)
                 ) {
-                    Text(text = "자동 첨부:", color = WarmGraphite, fontSize = 11.sp)
-                    if (hasOriginalPhoto && hasCompositePhoto) {
-                        Text(text = "📷 원본", color = MutedSilver, fontSize = 11.sp)
-                        Text(text = "📏 계측본", color = MutedSilver, fontSize = 11.sp)
-                    } else if (hasOriginalPhoto || hasCompositePhoto) {
-                        Text(text = "📷 사진", color = MutedSilver, fontSize = 11.sp)
-                    }
-                    if (hasMeasurement) {
-                        Text(text = "🤖 계측데이터", color = MutedSilver, fontSize = 11.sp)
-                    }
-                    if (hasEnvironmentData) {
-                        Text(text = "🌦️ 환경스펙", color = MutedSilver, fontSize = 11.sp)
-                    }
-                    Text(text = "📱 기기정보", color = MutedSilver, fontSize = 11.sp)
+                    Text(
+                        text = autoAttachText,
+                        fontSize = 11.sp,
+                        lineHeight = 16.sp
+                    )
                 }
 
                 // 9. 로그 포함 체크박스

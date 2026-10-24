@@ -747,6 +747,10 @@ fun BassShotScreen(
 
         // GitHub 이슈 제보 다이얼로그
         if (uiState.showIssueReportDialog) {
+            val reportMeasure = uiState.issueReportMeasurement ?: uiState.measurement
+            val hasValidMeasurement = reportMeasure != null && 
+                reportMeasure.isBassDetected && 
+                uiState.issueReportType != IssueReportType.MEASUREMENT_FAILED
             IssueReportDialog(
                 reportType = uiState.issueReportType,
                 hasValidToken = viewModel.hasValidGitHubToken(),
@@ -754,7 +758,7 @@ fun BassShotScreen(
                 submitProgress = uiState.issueSubmitProgress,
                 createdIssueUrl = uiState.lastCreatedIssueUrl,
                 errorMessage = uiState.errorMessage,
-                hasMeasurement = (uiState.issueReportMeasurement ?: uiState.measurement) != null,
+                hasMeasurement = hasValidMeasurement,
                 hasOriginalPhoto = uiState.issueReportOriginalBitmap != null,
                 hasCompositePhoto = uiState.issueReportCompositeBitmap != null,
                 hasEnvironmentData = uiState.issueReportEnvironmentData != null,
