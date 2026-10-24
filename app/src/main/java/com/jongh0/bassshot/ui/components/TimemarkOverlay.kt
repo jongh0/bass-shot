@@ -58,17 +58,20 @@ fun TimemarkOverlay(
             modifier = Modifier
                 .align(Alignment.TopStart)
                 .padding(top = 10.dp, start = 12.dp)
+                .width(140.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(FrostedGlassBg)
                 .border(1.dp, FrostedGlassBorder, RoundedCornerShape(16.dp))
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
             Column(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // 1줄: 날씨 및 기온
                 Row(
+                    modifier = Modifier.height(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -80,6 +83,8 @@ fun TimemarkOverlay(
                     )
                     Text(
                         text = environmentData.formattedWeatherLine1(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         style = TextStyle(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Medium,
@@ -93,6 +98,7 @@ fun TimemarkOverlay(
 
                 // 2줄: 바람
                 Row(
+                    modifier = Modifier.height(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -104,6 +110,8 @@ fun TimemarkOverlay(
                     )
                     Text(
                         text = environmentData.formattedWeatherLine2(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         style = TextStyle(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Medium,
@@ -117,6 +125,7 @@ fun TimemarkOverlay(
 
                 // 3줄: 기압
                 Row(
+                    modifier = Modifier.height(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -128,6 +137,8 @@ fun TimemarkOverlay(
                     )
                     Text(
                         text = environmentData.formattedWeatherLine3(),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         style = TextStyle(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Medium,

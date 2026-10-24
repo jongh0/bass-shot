@@ -263,17 +263,19 @@ fun MeasurementOverlay(
                 .clip(RoundedCornerShape(16.dp))
                 .background(FrostedGlassBg)
                 .border(1.dp, FrostedGlassBorder, RoundedCornerShape(16.dp))
-                .padding(horizontal = 12.dp, vertical = 10.dp)
+                .padding(horizontal = 14.dp, vertical = 12.dp)
                 .alpha(if (isDragging) 0.45f else 1.0f)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 // 3-1. 헤더: 줄자(좌) & 물고기(우)
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -281,61 +283,81 @@ fun MeasurementOverlay(
                         painter = painterResource(R.drawable.ic_ruler),
                         contentDescription = null,
                         tint = Color(0x99FFFFFF),
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Icon(
                         painter = painterResource(R.drawable.ic_fish),
                         contentDescription = null,
                         tint = Color(0x99FFFFFF),
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
 
-                // 3-2. 길이 섹션
-                Text(
-                    text = "길이",
-                    color = NeonLime,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
-                    style = TextStyle(shadow = textShadow)
-                )
-
+                // 3-2. 길이 섹션 (한 줄: "길이" ... "26.5 cm")
                 Row(
-                    verticalAlignment = Alignment.Bottom,
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "${measurement.lengthCm}",
+                        text = "길이",
                         color = NeonLime,
-                        fontSize = 24.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = FontFamily.SansSerif,
-                        style = TextStyle(shadow = textShadow)
+                        style = TextStyle(
+                            lineHeight = 16.sp,
+                            shadow = textShadow
+                        )
                     )
-                    Text(
-                        text = "cm",
-                        color = NeonLime,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(bottom = 2.dp),
-                        style = TextStyle(shadow = textShadow)
-                    )
+
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(1.dp)
+                    ) {
+                        Text(
+                            text = "${measurement.lengthCm}",
+                            color = NeonLime,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.SansSerif,
+                            style = TextStyle(
+                                lineHeight = 16.sp,
+                                shadow = textShadow
+                            )
+                        )
+                        Text(
+                            text = "cm",
+                            color = NeonLime,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(bottom = 1.dp),
+                            style = TextStyle(
+                                lineHeight = 16.sp,
+                                shadow = textShadow
+                            )
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.height(2.dp))
-
-                // 3-3. 무게 섹션
+                // 3-3. 무게 섹션 (한 줄: "무게" ... "606 g")
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(16.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "무게",
                         color = WarmGraphite,
-                        fontSize = 11.sp,
+                        fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
-                        style = TextStyle(shadow = textShadow)
+                        style = TextStyle(
+                            lineHeight = 16.sp,
+                            shadow = textShadow
+                        )
                     )
 
                     Row(
@@ -345,10 +367,13 @@ fun MeasurementOverlay(
                         Text(
                             text = "${measurement.weightG}",
                             color = OpticalWhite,
-                            fontSize = 15.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = FontFamily.SansSerif,
-                            style = TextStyle(shadow = textShadow)
+                            style = TextStyle(
+                                lineHeight = 16.sp,
+                                shadow = textShadow
+                            )
                         )
                         Text(
                             text = "g",
@@ -356,7 +381,10 @@ fun MeasurementOverlay(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Normal,
                             modifier = Modifier.padding(bottom = 1.dp),
-                            style = TextStyle(shadow = textShadow)
+                            style = TextStyle(
+                                lineHeight = 16.sp,
+                                shadow = textShadow
+                            )
                         )
                     }
                 }
