@@ -69,6 +69,8 @@ class FishExifHelperTest {
 
         val jsonStr = FishExifHelper.buildJsonUserComment(measurement, env)
         assertNotNull(jsonStr)
+        // Verify all characters in jsonStr are pure ASCII to prevent ExifInterface corruption
+        assertTrue("JSON string in EXIF must be pure ASCII", jsonStr.all { it.code <= 127 })
 
         // Parse with Json
         val parsed = Json.decodeFromString<FishExifRecord>(jsonStr)
@@ -79,5 +81,9 @@ class FishExifHelperTest {
         assertEquals(36.8123, parsed.environment.latitude!!, 0.0001)
         assertEquals(1013.0f, parsed.environment.pressure_hpa)
         assertTrue(parsed.environment.is_sensor_barometer)
+        assertEquals("충청남도 아산시 영인면 월선리 573", parsed.environment.address)
+        assertEquals("맑음", parsed.environment.weather)
+        assertEquals(0.4f, parsed.measurement?.max_girth_left?.x)
+        assertEquals(0.6f, parsed.measurement?.max_girth_right?.x)
     }
 }

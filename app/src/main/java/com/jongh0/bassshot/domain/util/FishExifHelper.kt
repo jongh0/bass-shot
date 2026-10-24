@@ -1,6 +1,7 @@
 package com.jongh0.bassshot.domain.util
 
 import android.content.Context
+import android.location.Geocoder
 import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
@@ -31,6 +32,8 @@ data class MeasurementExifData(
     val girth_cm: Float,
     val snout_point: PointExifData,
     val tail_point: PointExifData,
+    val max_girth_left: PointExifData? = null,
+    val max_girth_right: PointExifData? = null,
     val is_manual: Boolean
 )
 
@@ -101,6 +104,8 @@ object FishExifHelper {
                     girth_cm = m.girthCm,
                     snout_point = PointExifData(m.snoutPoint.x, m.snoutPoint.y),
                     tail_point = PointExifData(m.tailPoint.x, m.tailPoint.y),
+                    max_girth_left = PointExifData(m.maxGirthLeft.x, m.maxGirthLeft.y),
+                    max_girth_right = PointExifData(m.maxGirthRight.x, m.maxGirthRight.y),
                     is_manual = m.isManualFallback
                 )
             },
@@ -115,7 +120,25 @@ object FishExifHelper {
                 is_sensor_barometer = env.isFromBarometerSensor
             )
         )
-        return json.encodeToString(record)
+        val rawJson = json.encodeToString(record)
+        return escapeToAscii(rawJson)
+    }
+
+    /**
+     * ExifInterface가 ASCII로 저장할 때 한글이 '?'로 파괴되는 것을 방지하기 위해
+     * non-ASCII 문자를 표준 JSON 유니코드 이스케이프(\uXXXX)로 변환
+     */
+    private fun escapeToAscii(input: String): String {
+        val sb = StringBuilder(input.length * 2)
+        for (char in input) {
+            if (char.code > 127) {
+                sb.append("\\u")
+                sb.append(String.format(Locale.US, "%04x", char.code))
+            } else {
+                sb.append(char)
+            }
+        }
+        return sb.toString()
     }
 
     /**
@@ -202,16 +225,30 @@ object FishExifHelper {
             val dateStr = parsedDate?.let { SimpleDateFormat("yyyy년 M월 d일", Locale.KOREA).format(it) } ?: ""
             val dayOfWeekStr = parsedDate?.let { SimpleDateFormat("EEEE", Locale.KOREA).format(it) } ?: ""
 
+            // 주소 복원: 주소가 없거나 '?'로 깨져 있는 경우, 좌표로부터 한국어 주소 역지오코딩
+            var resolvedAddress = env.address
+            if (resolvedAddress.isNullOrBlank() || resolvedAddress.count { it == '?' } >= 2) {
+                resolvedAddress = if (env.latitude != null && env.longitude != null) {
+                    reverseGeocode(context, env.latitude, env.longitude)
+                } else null
+            }
+            if (resolvedAddress?.contains('?') == true) {
+                resolvedAddress = null
+            }
+
+            // 날씨 복원: '?'로 깨져 있는 경우 null 처리
+            val resolvedWeather = if (env.weather?.contains('?') == true) null else env.weather
+
             return EnvironmentData(
                 timeFormatted = timeStr,
                 dateFormatted = dateStr,
                 dayOfWeekFormatted = dayOfWeekStr,
                 tempCelsius = env.temp_celsius,
-                weatherDescription = env.weather,
+                weatherDescription = resolvedWeather,
                 windSpeedMps = env.wind_speed_mps,
                 pressureHpa = env.pressure_hpa,
                 isFromBarometerSensor = env.is_sensor_barometer,
-                addressKorean = env.address,
+                addressKorean = resolvedAddress,
                 latitude = env.latitude,
                 longitude = env.longitude
             )
@@ -233,14 +270,32 @@ object FishExifHelper {
                 val dateStr = parsedDate?.let { SimpleDateFormat("yyyy년 M월 d일", Locale.KOREA).format(it) } ?: ""
                 val dayOfWeekStr = parsedDate?.let { SimpleDateFormat("EEEE", Locale.KOREA).format(it) } ?: ""
 
+                var resolvedAddress: String? = null
+                if (latLong != null) {
+                    resolvedAddress = reverseGeocode(context, latLong[0], latLong[1])
+                }
+
                 EnvironmentData(
                     timeFormatted = timeStr,
                     dateFormatted = dateStr,
                     dayOfWeekFormatted = dayOfWeekStr,
+                    addressKorean = resolvedAddress,
                     latitude = latLong?.get(0),
                     longitude = latLong?.get(1)
                 )
             }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun reverseGeocode(context: Context, latitude: Double, longitude: Double): String? {
+        return try {
+            val geocoder = Geocoder(context, Locale.KOREA)
+            @Suppress("DEPRECATION")
+            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+            val raw = addresses?.firstOrNull()?.getAddressLine(0) ?: return null
+            raw.removePrefix("대한민국").trim()
         } catch (_: Exception) {
             null
         }
@@ -253,6 +308,9 @@ object FishExifHelper {
         val record = readFishExifRecord(context, uri) ?: return null
         val m = record.measurement ?: return null
 
+        val girthLeft = m.max_girth_left?.let { NormalizedPoint(it.x, it.y) } ?: NormalizedPoint(0.40f, 0.48f)
+        val girthRight = m.max_girth_right?.let { NormalizedPoint(it.x, it.y) } ?: NormalizedPoint(0.60f, 0.48f)
+
         return BassMeasurementUiModel(
             isBassDetected = m.is_bass_detected,
             isManualFallback = m.is_manual,
@@ -261,8 +319,8 @@ object FishExifHelper {
             weightG = m.weight_g,
             snoutPoint = NormalizedPoint(m.snout_point.x, m.snout_point.y),
             tailPoint = NormalizedPoint(m.tail_point.x, m.tail_point.y),
-            maxGirthLeft = NormalizedPoint(0.40f, 0.48f),
-            maxGirthRight = NormalizedPoint(0.60f, 0.48f),
+            maxGirthLeft = girthLeft,
+            maxGirthRight = girthRight,
             cmPerNormalizedUnit = if (m.length_cm > 0f) m.length_cm else 30f
         )
     }

@@ -87,7 +87,8 @@ object IssueReportFormatter {
             input.environmentData?.let { env ->
                 append("\n--- 촬영 환경 (EXIF / 센서) ---\n")
                 if (env.dateFormatted.isNotBlank() && env.timeFormatted.isNotBlank()) {
-                    append("촬영 일시: ${env.dateFormatted} (${env.dayOfWeekFormatted}) ${env.timeFormatted}\n")
+                    val dayOfWeekPart = if (env.dayOfWeekFormatted.isNotBlank()) " (${env.dayOfWeekFormatted})" else ""
+                    append("촬영 일시: ${env.dateFormatted}${dayOfWeekPart} ${env.timeFormatted}\n")
                 }
                 if (!env.addressKorean.isNullOrBlank()) append("위치: ${env.addressKorean}\n")
                 if (env.latitude != null && env.longitude != null) append("좌표: ${env.latitude}, ${env.longitude}\n")
