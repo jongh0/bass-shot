@@ -258,21 +258,13 @@ fun MeasurementOverlay(
             }
         }
 
-        // 3. 우상단(TopEnd) 계측 결과 카드 (나노 바나나 목업 디자인 일치)
-        val textShadow = Shadow(
-            color = Color(0xD9000000),
-            offset = Offset(0f, 2f),
-            blurRadius = 6f
-        )
-
+        // 3. 우상단(TopEnd) 계측 결과 카드 (직사각형 모서리 + 우상단 끝 밀착)
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .padding(top = 10.dp, end = 12.dp)
                 .width(140.dp)
-                .clip(RoundedCornerShape(16.dp))
                 .background(FrostedGlassBg)
-                .border(1.dp, FrostedGlassBorder, RoundedCornerShape(16.dp))
+                .border(1.dp, FrostedGlassBorder)
                 .padding(horizontal = 14.dp, vertical = 12.dp)
                 .alpha(if (isDragging) 0.45f else 1.0f)
         ) {
@@ -317,8 +309,7 @@ fun MeasurementOverlay(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         style = TextStyle(
-                            lineHeight = 16.sp,
-                            shadow = textShadow
+                            lineHeight = 16.sp
                         )
                     )
 
@@ -333,8 +324,7 @@ fun MeasurementOverlay(
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.SansSerif,
                             style = TextStyle(
-                                lineHeight = 16.sp,
-                                shadow = textShadow
+                                lineHeight = 16.sp
                             )
                         )
                         Text(
@@ -344,8 +334,7 @@ fun MeasurementOverlay(
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(bottom = 1.dp),
                             style = TextStyle(
-                                lineHeight = 16.sp,
-                                shadow = textShadow
+                                lineHeight = 16.sp
                             )
                         )
                     }
@@ -365,8 +354,7 @@ fun MeasurementOverlay(
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         style = TextStyle(
-                            lineHeight = 16.sp,
-                            shadow = textShadow
+                            lineHeight = 16.sp
                         )
                     )
 
@@ -381,8 +369,7 @@ fun MeasurementOverlay(
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = FontFamily.SansSerif,
                             style = TextStyle(
-                                lineHeight = 16.sp,
-                                shadow = textShadow
+                                lineHeight = 16.sp
                             )
                         )
                         Text(
@@ -392,8 +379,7 @@ fun MeasurementOverlay(
                             fontWeight = FontWeight.Normal,
                             modifier = Modifier.padding(bottom = 1.dp),
                             style = TextStyle(
-                                lineHeight = 16.sp,
-                                shadow = textShadow
+                                lineHeight = 16.sp
                             )
                         )
                     }

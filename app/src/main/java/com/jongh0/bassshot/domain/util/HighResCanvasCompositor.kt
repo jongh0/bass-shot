@@ -201,15 +201,13 @@ object HighResCanvasCompositor {
         canvas.drawText("+ ", textStartX, textBaselineY, plusPaint)
         canvas.drawText(lenText, textStartX + plusWidth, textBaselineY, lenPaint)
 
-        // 4. 우상단(TopEnd) 계측 결과 카드 (나노 바나나 목업 디자인 일치)
+        // 4. 우상단(TopEnd) 계측 결과 카드 (직사각형 모서리 + 우상단 끝 밀착)
         val cardWidth = 140f * scaleDp
         val cardHeight = 88f * scaleDp
-        val cardMarginRight = 12f * scaleDp
-        val cardTop = 10f * scaleDp
-        val cardRight = width - cardMarginRight
+        val cardTop = 0f
+        val cardRight = width.toFloat()
         val cardLeft = cardRight - cardWidth
-        val cardBottom = cardTop + cardHeight
-        val cardRadius = 16f * scaleDp
+        val cardBottom = cardHeight
         val cardPaddingH = 14f * scaleDp
         val cardPaddingV = 12f * scaleDp
 
@@ -222,9 +220,9 @@ object HighResCanvasCompositor {
             strokeWidth = 1f * scaleDp
             style = Paint.Style.STROKE
         }
-        val cardRect = RectF(cardLeft, cardTop, cardRight, cardBottom)
-        canvas.drawRoundRect(cardRect, cardRadius, cardRadius, cardBgPaint)
-        canvas.drawRoundRect(cardRect, cardRadius, cardRadius, cardBorderPaint)
+        val cardRect = RectF(cardLeft, 0f, cardRight, cardBottom)
+        canvas.drawRect(cardRect, cardBgPaint)
+        canvas.drawRect(cardRect, cardBorderPaint)
 
         val rowGap = 8f * scaleDp
         val lineHeight = 16f * scaleFont
@@ -243,7 +241,6 @@ object HighResCanvasCompositor {
             textSize = 12f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.LEFT
-            setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         canvas.drawText("길이", cardLeft + cardPaddingH, textBaselineY2, lenLabelPaint)
 
@@ -252,14 +249,12 @@ object HighResCanvasCompositor {
             textSize = 11f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.RIGHT
-            setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         val lenNumPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_NEON_LIME)
             textSize = 14f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.RIGHT
-            setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         val lenUnitStr = "cm"
         val lenNumStr = "${measurement.lengthCm} "
@@ -276,7 +271,6 @@ object HighResCanvasCompositor {
             textSize = 12f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT
-            setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         canvas.drawText("무게", cardLeft + cardPaddingH, textBaselineY3, weightLabelPaint)
 
@@ -285,14 +279,12 @@ object HighResCanvasCompositor {
             textSize = 11f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.RIGHT
-            setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         val weightNumPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_OPTICAL_WHITE)
             textSize = 14f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.RIGHT
-            setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         val weightUnitStr = "g"
         val weightNumStr = "${measurement.weightG} "
@@ -357,14 +349,13 @@ object HighResCanvasCompositor {
         val marginH = 16f * scaleDp
         val marginB = 14f * scaleDp
 
-        // 1. 좌상단 프로스티드 글래스 날씨 카드
+        // 1. 좌상단 프로스티드 글래스 날씨 카드 (직사각형 모서리 + 좌상단 끝 밀착)
         val wLine1 = env.formattedWeatherLine1()
         val wLine2 = env.formattedWeatherLine2()
         val wLine3 = env.formattedWeatherLine3()
 
-        val cardLeft = 12f * scaleDp
-        val cardTop = 10f * scaleDp
-        val cardRadius = 16f * scaleDp
+        val cardLeft = 0f
+        val cardTop = 0f
         val cardPaddingH = 14f * scaleDp
         val cardPaddingV = 12f * scaleDp
         val iconSize = 15f * scaleDp
@@ -376,15 +367,13 @@ object HighResCanvasCompositor {
             textSize = 12f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT
-            setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
 
-        val maxTextW = maxOf(wPaint.measureText(wLine1), wPaint.measureText(wLine2), wPaint.measureText(wLine3))
         val cardW = 140f * scaleDp
         val lineHeight = 16f * scaleFont
         val cardH = cardPaddingV * 2 + (lineHeight * 3) + (rowGap * 2)
 
-        val weatherCardRect = RectF(cardLeft, cardTop, cardLeft + cardW, cardTop + cardH)
+        val weatherCardRect = RectF(0f, 0f, cardW, cardH)
         val cardBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(56, 0, 0, 0)
             style = Paint.Style.FILL
@@ -394,8 +383,8 @@ object HighResCanvasCompositor {
             strokeWidth = 1f * scaleDp
             style = Paint.Style.STROKE
         }
-        canvas.drawRoundRect(weatherCardRect, cardRadius, cardRadius, cardBgPaint)
-        canvas.drawRoundRect(weatherCardRect, cardRadius, cardRadius, cardBorderPaint)
+        canvas.drawRect(weatherCardRect, cardBgPaint)
+        canvas.drawRect(weatherCardRect, cardBorderPaint)
 
         // 3줄 행 드로잉 (아이콘을 한글 텍스트 시각적 중심과 일치하도록 오프셋 보정)
         val textX = cardLeft + cardPaddingH + iconSize + iconTextGap

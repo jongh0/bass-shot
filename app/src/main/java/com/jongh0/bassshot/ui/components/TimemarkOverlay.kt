@@ -65,15 +65,13 @@ fun TimemarkOverlay(
         )
 
         Box(modifier = modifier.fillMaxSize()) {
-        // 1. 좌상단 날씨/바람/기압 카드 (프로스티드 글래스 라운드 카드 + 아이콘)
+        // 1. 좌상단 날씨/바람/기압 카드 (직사각형 모서리 + 좌상단 끝 밀착)
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(top = 10.dp, start = 12.dp)
                 .width(140.dp)
-                .clip(RoundedCornerShape(16.dp))
                 .background(FrostedGlassBg)
-                .border(1.dp, FrostedGlassBorder, RoundedCornerShape(16.dp))
+                .border(1.dp, FrostedGlassBorder)
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
             Column(
@@ -101,8 +99,7 @@ fun TimemarkOverlay(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp,
-                            lineHeight = 16.sp,
-                            shadow = textShadow
+                            lineHeight = 16.sp
                         ),
                         color = OpticalWhite
                     )
@@ -128,8 +125,7 @@ fun TimemarkOverlay(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp,
-                            lineHeight = 16.sp,
-                            shadow = textShadow
+                            lineHeight = 16.sp
                         ),
                         color = OpticalWhite
                     )
@@ -155,8 +151,7 @@ fun TimemarkOverlay(
                             fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp,
-                            lineHeight = 16.sp,
-                            shadow = textShadow
+                            lineHeight = 16.sp
                         ),
                         color = OpticalWhite
                     )
