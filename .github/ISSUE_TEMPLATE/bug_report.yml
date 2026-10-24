@@ -1,0 +1,94 @@
+name: "🐛 버그 / 문제 신고"
+description: "앱 사용 중 발생한 오류나 충돌, 오작동을 제보합니다."
+title: "[BUG]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        배스샷(BassShot) 이용 중 발생한 버그를 제보해주셔서 감사합니다.  
+        원활한 원인 파악 및 해결을 위해 가능한 자세한 정보를 입력해주세요.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: 📌 문제 설명
+      description: 어떤 문제가 발생했는지 명확하고 간략하게 작성해주세요.
+      placeholder: 예) 카메라 화면에서 셔터를 누르면 앱이 강제 종료됩니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction-steps
+    attributes:
+      label: 🔁 재현 방법
+      description: 문제를 재현할 수 있는 단계를 순서대로 작성해주세요.
+      placeholder: |
+        1. 앱 실행 후 카메라 화면 진입
+        2. 하단 셔터 버튼 터치
+        3. 계측 화면으로 넘어가지 않고 앱 충돌 발생
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 🎯 예상 동작
+      description: 정상적으로 동작했을 때 기대되는 동작을 작성해주세요.
+      placeholder: 예) 촬영된 사진이 고정되고 비전 계측이 시작되어야 합니다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 💥 에러 로그 / Logcat (선택 사항)
+      description: 발생한 Logcat 로그나 에러 스택 트레이스를 붙여넣어주세요.
+      render: shell
+      placeholder: |
+        FATAL EXCEPTION: main
+        Process: com.bassshot.app, PID: 12345
+        java.lang.NullPointerException...
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: 📸 스크린샷 / 화면 녹화
+      description: 문제 상황을 파악할 수 있는 스크린샷이나 화면 녹화 영상을 첨부해주세요 (드래그 & 드롭 가능).
+
+  - type: input
+    id: device-model
+    attributes:
+      label: 📱 기기 모델
+      description: 문제를 확인한 스마트폰 기기 모델명을 적어주세요.
+      placeholder: 예) Galaxy S24 Ultra, Pixel 8 Pro
+    validations:
+      required: false
+
+  - type: input
+    id: os-version
+    attributes:
+      label: 🤖 안드로이드 OS 버전
+      description: 기기의 Android 버전 또는 API 레벨을 적어주세요.
+      placeholder: 예) Android 14 (API 34)
+    validations:
+      required: false
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 📦 앱 버전
+      description: 사용 중인 BassShot 앱 버전을 적어주세요.
+      placeholder: 예) v1.0.0
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: ✅ 확인 사항
+      options:
+        - label: 최신 버전에서도 동일한 문제가 발생하는지 확인했습니다.
+          required: false
+        - label: 이미 등록된 유사한 이슈가 없는지 검색해 확인했습니다.
+          required: false
