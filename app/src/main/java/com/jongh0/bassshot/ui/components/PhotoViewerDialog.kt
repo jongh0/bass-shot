@@ -3,6 +3,7 @@ package com.jongh0.bassshot.ui.components
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -48,8 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.jongh0.bassshot.R
@@ -81,18 +80,14 @@ fun PhotoViewerDialog(
 
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
-    Dialog(
-        onDismissRequest = onDismissRequest,
-        properties = DialogProperties(
-            usePlatformDefaultWidth = false,
-            decorFitsSystemWindows = false
-        )
+    // 안드로이드 시스템 뒤로가기 제스처 및 하드웨어 뒤로가기 버튼 처리
+    BackHandler(onBack = onDismissRequest)
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black)
-        ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // 1. 상단 탑바 (닫기 버튼 및 페이지 인디케이터)
                 Row(
@@ -152,12 +147,12 @@ fun PhotoViewerDialog(
                     }
                 }
 
-                // 3. 하단 액션 바 (카카오톡 전송, 더보기, 삭제 - 내비게이션 바 위 여유 있는 패딩으로 수직 중앙 정렬)
+                // 3. 하단 액션 바 (카카오톡 전송, 더보기, 삭제 - 내비게이션 바 위 96dp 수직 중앙 정렬)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .navigationBarsPadding()
-                        .padding(top = 16.dp, bottom = 32.dp),
+                        .height(96.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     Row(
@@ -299,4 +294,3 @@ fun PhotoViewerDialog(
             }
         }
     }
-}

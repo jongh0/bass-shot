@@ -117,10 +117,6 @@ object HighResCanvasCompositor {
         canvas.drawLine(tailX - jawHalfWidth, tailY, tailX + jawHalfWidth, tailY, jawShadow)
         canvas.drawLine(tailX - jawHalfWidth, tailY, tailX + jawHalfWidth, tailY, jawPaint)
 
-        // Snout & Tail 고감도 정밀 레티클 핸들 (중앙부 투명 도넛 + 4방향 십자 눈금선)
-        drawPrecisionHandle(canvas, snoutX, snoutY, scaleDp)
-        drawPrecisionHandle(canvas, tailX, tailY, scaleDp)
-
         // 좌상단(TopLeft) 스펙 텍스트 (날씨 3줄 아래 살짝 간격을 띄워서 배치, 11.5sp, Normal, MutedSilver)
         val badgeLeft = 12f * scaleDp
         val lineHeight = (16f * scaleFont) + (2f * scaleDp)
@@ -276,63 +272,6 @@ object HighResCanvasCompositor {
                 borderPaint
             )
         }
-    }
-
-    private fun drawPrecisionHandle(
-        canvas: Canvas,
-        centerX: Float,
-        centerY: Float,
-        scaleDp: Float
-    ) {
-        val radius = 18f * scaleDp
-        val ringStroke = 2.4f * scaleDp
-        val shadowStroke = ringStroke + 2.5f * scaleDp
-        val shadowColor = Color.argb(192, 0, 0, 0)
-        val mainColor = Color.parseColor(COLOR_OPTICAL_WHITE)
-
-        val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = shadowColor
-            strokeWidth = shadowStroke
-            style = Paint.Style.STROKE
-        }
-        val mainPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = mainColor
-            strokeWidth = ringStroke
-            style = Paint.Style.STROKE
-        }
-
-        // 1. 외곽 블랙 드롭 섀도우 링
-        canvas.drawCircle(centerX, centerY, radius, shadowPaint)
-        // 2. 메인 테두리 링 (중앙부는 fill 없이 100% 투명)
-        canvas.drawCircle(centerX, centerY, radius, mainPaint)
-
-        // 3. 링 바깥쪽으로 뻗은 십자 조준선 (링 내부는 뚫려있어 가리지 않고 바깥에서 중심 위치 가리킴)
-        val tickLen = radius * 0.45f
-        val tickStroke = 1.6f * scaleDp
-        val shadowTickStroke = tickStroke + 2.5f * scaleDp
-
-        val tickShadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = shadowColor
-            strokeWidth = shadowTickStroke
-            style = Paint.Style.STROKE
-        }
-        val tickMainPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = mainColor
-            strokeWidth = tickStroke
-            style = Paint.Style.STROKE
-        }
-
-        // 십자선 그림자
-        canvas.drawLine(centerX, centerY - radius - tickLen, centerX, centerY - radius, tickShadowPaint)
-        canvas.drawLine(centerX, centerY + radius, centerX, centerY + radius + tickLen, tickShadowPaint)
-        canvas.drawLine(centerX - radius - tickLen, centerY, centerX - radius, centerY, tickShadowPaint)
-        canvas.drawLine(centerX + radius, centerY, centerX + radius + tickLen, centerY, tickShadowPaint)
-
-        // 십자선 본체
-        canvas.drawLine(centerX, centerY - radius - tickLen, centerX, centerY - radius, tickMainPaint)
-        canvas.drawLine(centerX, centerY + radius, centerX, centerY + radius + tickLen, tickMainPaint)
-        canvas.drawLine(centerX - radius - tickLen, centerY, centerX - radius, centerY, tickMainPaint)
-        canvas.drawLine(centerX + radius, centerY, centerX + radius + tickLen, centerY, tickMainPaint)
     }
 
     private fun getRoundedCornerBitmap(bitmap: Bitmap, cornerRadius: Float, targetSize: Int): Bitmap {

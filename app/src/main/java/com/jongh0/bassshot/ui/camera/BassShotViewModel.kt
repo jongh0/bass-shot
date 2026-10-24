@@ -25,8 +25,11 @@ import com.jongh0.bassshot.domain.util.HighResCanvasCompositor
 import com.jongh0.bassshot.domain.util.ShutterSoundPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.update
@@ -45,6 +48,9 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
 
     private val _uiState = MutableStateFlow(BassShotUiState())
     val uiState: StateFlow<BassShotUiState> = _uiState.asStateFlow()
+
+    private val _shutterFlashEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
+    val shutterFlashEvent: SharedFlow<Unit> = _shutterFlashEvent.asSharedFlow()
 
     val cameraController = LifecycleCameraController(application).apply {
         imageCaptureMode = ImageCapture.CAPTURE_MODE_MAXIMIZE_QUALITY
@@ -122,6 +128,9 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
         if (_uiState.value.appState != AppState.CAMERA_PREVIEW || isCapturing.getAndSet(true)) {
             return
         }
+
+        // 촬영 시각 피드백 (뷰파인더 흰색 플래시/번쩍임 애니메이션 이벤트 트리거)
+        _shutterFlashEvent.tryEmit(Unit)
 
         // 갤럭시 기본 셔터음 재생 (설정에서 켜져 있을 때만, 중간 크기 볼륨)
         if (_uiState.value.isShutterSoundEnabled) {

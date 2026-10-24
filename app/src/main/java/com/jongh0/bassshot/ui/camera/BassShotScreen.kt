@@ -1,8 +1,12 @@
 package com.jongh0.bassshot.ui.camera
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,16 +35,19 @@ import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -90,6 +97,37 @@ fun BassShotScreen(
 
     LaunchedEffect(hasLocationPermission) {
         viewModel.refreshEnvironmentData(hasLocationPermission)
+    }
+
+    var showDiscardConfirmDialog by remember { mutableStateOf(false) }
+
+    // 셔터 클릭 시 이미지 영역 전체가 살짝 투명한 흰색으로 번쩍이는 플래시 시각 피드백 (찰칵 셔터음 길이 약 150~160ms와 1:1 매칭)
+    val flashAlpha = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        viewModel.shutterFlashEvent.collect {
+            flashAlpha.snapTo(0.70f)
+            flashAlpha.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(durationMillis = 160, easing = FastOutSlowInEasing)
+            )
+        }
+    }
+
+    val isResultSaved = uiState.appState == AppState.RESULT_SAVED
+    val isAlreadySaved = uiState.savedPhotoUriString != null
+    val isOtherOverlayOpen = uiState.isPhotoViewerOpen || uiState.showSettingsDialog || uiState.showUpdateDialog
+
+    // 계측 화면(RESULT_SAVED)에서 시스템 뒤로가기 버튼 / 제스처 처리
+    // 카메라 화면에서는 BackHandler가 비활성화되어 자연스럽게 앱이 종료됨
+    BackHandler(enabled = isResultSaved && !isOtherOverlayOpen) {
+        if (showDiscardConfirmDialog) {
+            showDiscardConfirmDialog = false
+        } else if (isAlreadySaved) {
+            viewModel.onRetakeClicked()
+        } else {
+            showDiscardConfirmDialog = true
+        }
     }
 
     Box(
@@ -269,6 +307,15 @@ fun BassShotScreen(
                             )
                         }
                     }
+                }
+
+                // 셔터 플래시(번쩍임) 시각 피드백 오버레이: 촬영 순간 이미지 영역 전체를 살짝 투명한 흰색으로 깜빡임
+                if (flashAlpha.value > 0f) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White.copy(alpha = flashAlpha.value))
+                    )
                 }
             }
 
@@ -483,7 +530,13 @@ fun BassShotScreen(
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(AnodizedCharcoal)
                                         .border(1.dp, SubtleTitanium, RoundedCornerShape(8.dp))
-                                        .clickable { viewModel.onRetakeClicked() }
+                                        .clickable {
+                                            if (isAlreadySaved) {
+                                                viewModel.onRetakeClicked()
+                                            } else {
+                                                showDiscardConfirmDialog = true
+                                            }
+                                        }
                                         .padding(vertical = 12.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
@@ -569,6 +622,46 @@ fun BassShotScreen(
                 initialIndex = uiState.initialViewerPhotoIndex,
                 onDismissRequest = { viewModel.closePhotoViewer() },
                 onDeletePhoto = { viewModel.deletePhoto(it) }
+            )
+        }
+
+        // 사진 미저장 시 뒤로가기/다시촬영 확인 다이얼로그
+        if (showDiscardConfirmDialog) {
+            AlertDialog(
+                onDismissRequest = { showDiscardConfirmDialog = false },
+                title = {
+                    Text(
+                        text = "사진을 저장하지 않고 나갈까요?",
+                        color = OpticalWhite,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                },
+                text = {
+                    Text(
+                        text = "지금 카메라 화면으로 돌아가면 현재 촬영 및 계측 결과가 저장되지 않습니다.",
+                        color = MutedSilver,
+                        fontSize = 13.5.sp,
+                        lineHeight = 19.sp
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDiscardConfirmDialog = false
+                            viewModel.onRetakeClicked()
+                        }
+                    ) {
+                        Text("나가기", color = Color(0xFFFF5C5C), fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDiscardConfirmDialog = false }) {
+                        Text("취소", color = WarmGraphite)
+                    }
+                },
+                containerColor = AnodizedCharcoal,
+                shape = RoundedCornerShape(14.dp)
             )
         }
     }
