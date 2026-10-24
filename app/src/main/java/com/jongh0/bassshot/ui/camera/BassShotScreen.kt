@@ -167,35 +167,28 @@ fun BassShotScreen(
                     letterSpacing = 1.8.sp
                 )
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (uiState.appState == AppState.RESULT_SAVED) {
-                        IconButton(
-                            onClick = {
-                                val reportType = if (uiState.measurement?.isBassDetected == true) {
-                                    IssueReportType.MEASUREMENT_INACCURATE
-                                } else {
-                                    IssueReportType.MEASUREMENT_FAILED
-                                }
-                                viewModel.openIssueReportDialog(reportType)
-                            },
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.BugReport,
-                                contentDescription = "계측 오류 제보",
-                                tint = SafetyOrange
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(4.dp))
+                if (uiState.appState == AppState.RESULT_SAVED) {
+                    IconButton(
+                        onClick = {
+                            val reportType = if (uiState.measurement?.isBassDetected == true) {
+                                IssueReportType.MEASUREMENT_INACCURATE
+                            } else {
+                                IssueReportType.MEASUREMENT_FAILED
+                            }
+                            viewModel.openIssueReportDialog(reportType)
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.BugReport,
+                            contentDescription = "계측 오류 제보",
+                            tint = SafetyOrange
+                        )
                     }
-
-                    val isCameraPreview = uiState.appState == AppState.CAMERA_PREVIEW
+                } else {
                     IconButton(
                         onClick = { viewModel.openSettingsDialog() },
-                        enabled = isCameraPreview,
-                        modifier = Modifier
-                            .size(36.dp)
-                            .alpha(if (isCameraPreview) 1.0f else 0.35f)
+                        modifier = Modifier.size(36.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Settings,
