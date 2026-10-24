@@ -396,21 +396,22 @@ object HighResCanvasCompositor {
         canvas.drawRoundRect(weatherCardRect, cardRadius, cardRadius, cardBgPaint)
         canvas.drawRoundRect(weatherCardRect, cardRadius, cardRadius, cardBorderPaint)
 
-        // 3줄 행 드로잉
+        // 3줄 행 드로잉 (아이콘을 한글 텍스트 시각적 중심과 일치하도록 오프셋 보정)
         val textX = cardLeft + cardPaddingH + iconSize + iconTextGap
         val iconX = cardLeft + cardPaddingH
         val row1Y = cardTop + cardPaddingV
         val row2Y = row1Y + lineHeight + rowGap
         val row3Y = row2Y + lineHeight + rowGap
         val iconTint = Color.argb(204, 255, 255, 255)
+        val weatherIconYOffset = 1.8f * scaleDp
 
-        drawVector(context, canvas, R.drawable.ic_weather_cloud, iconX, row1Y, iconSize, iconTint)
+        drawVector(context, canvas, R.drawable.ic_weather_cloud, iconX, row1Y + weatherIconYOffset, iconSize, iconTint)
         canvas.drawText(wLine1, textX, row1Y + lineHeight - 3f * scaleDp, wPaint)
 
-        drawVector(context, canvas, R.drawable.ic_wind, iconX, row2Y, iconSize, iconTint)
+        drawVector(context, canvas, R.drawable.ic_wind, iconX, row2Y + weatherIconYOffset, iconSize, iconTint)
         canvas.drawText(wLine2, textX, row2Y + lineHeight - 3f * scaleDp, wPaint)
 
-        drawVector(context, canvas, R.drawable.ic_barometer, iconX, row3Y, iconSize, iconTint)
+        drawVector(context, canvas, R.drawable.ic_barometer, iconX, row3Y + weatherIconYOffset, iconSize, iconTint)
         canvas.drawText(wLine3, textX, row3Y + lineHeight - 3f * scaleDp, wPaint)
 
         // 2. 우측 미니 지도 크기 및 텍스트 허용 너비 계산
@@ -446,8 +447,8 @@ object HighResCanvasCompositor {
         val addressHeight = addressLayout.height.toFloat()
         val addressTopY = height - marginB - addressHeight
 
-        // 핀 아이콘 드로잉
-        drawVector(context, canvas, R.drawable.ic_location_pin, marginH, addressTopY + 1f * scaleDp, pinIconSize, Color.WHITE)
+        // 핀 아이콘 드로잉 (한글 텍스트 높이 및 베이스라인과 시각적 중심 일치 보정)
+        drawVector(context, canvas, R.drawable.ic_location_pin, marginH, addressTopY + 3.2f * scaleDp, pinIconSize, Color.WHITE)
 
         canvas.save()
         canvas.translate(marginH + addressIndent, addressTopY)

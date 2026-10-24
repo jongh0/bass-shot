@@ -79,7 +79,7 @@ fun TimemarkOverlay(
                         painter = painterResource(R.drawable.ic_weather_cloud),
                         contentDescription = null,
                         tint = Color(0xCCFFFFFF),
-                        modifier = Modifier.size(15.dp)
+                        modifier = Modifier.size(15.dp).padding(top = 1.5.dp)
                     )
                     Text(
                         text = environmentData.formattedWeatherLine1(),
@@ -106,7 +106,7 @@ fun TimemarkOverlay(
                         painter = painterResource(R.drawable.ic_wind),
                         contentDescription = null,
                         tint = Color(0xCCFFFFFF),
-                        modifier = Modifier.size(15.dp)
+                        modifier = Modifier.size(15.dp).padding(top = 1.5.dp)
                     )
                     Text(
                         text = environmentData.formattedWeatherLine2(),
@@ -133,7 +133,7 @@ fun TimemarkOverlay(
                         painter = painterResource(R.drawable.ic_barometer),
                         contentDescription = null,
                         tint = Color(0xCCFFFFFF),
-                        modifier = Modifier.size(15.dp)
+                        modifier = Modifier.size(15.dp).padding(top = 1.5.dp)
                     )
                     Text(
                         text = environmentData.formattedWeatherLine3(),
@@ -209,7 +209,7 @@ fun TimemarkOverlay(
                         painter = painterResource(R.drawable.ic_location_pin),
                         contentDescription = null,
                         tint = OpticalWhite,
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(14.dp).padding(top = 2.dp)
                     )
                     Text(
                         text = environmentData.formattedAddressOnly(),
