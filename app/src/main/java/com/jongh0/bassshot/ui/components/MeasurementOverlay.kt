@@ -260,14 +260,15 @@ fun MeasurementOverlay(
             modifier = Modifier
                 .align(Alignment.TopEnd)
                 .padding(top = 10.dp, end = 12.dp)
+                .width(140.dp)
                 .clip(RoundedCornerShape(16.dp))
                 .background(FrostedGlassBg)
                 .border(1.dp, FrostedGlassBorder, RoundedCornerShape(16.dp))
-                .padding(horizontal = 14.dp, vertical = 10.dp)
-                .widthIn(min = 135.dp)
+                .padding(horizontal = 12.dp, vertical = 10.dp)
                 .alpha(if (isDragging) 0.45f else 1.0f)
         ) {
             Column(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
@@ -307,7 +308,7 @@ fun MeasurementOverlay(
                     Text(
                         text = "${measurement.lengthCm}",
                         color = NeonLime,
-                        fontSize = 26.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         fontFamily = FontFamily.SansSerif,
                         style = TextStyle(shadow = textShadow)
@@ -315,9 +316,9 @@ fun MeasurementOverlay(
                     Text(
                         text = "cm",
                         color = NeonLime,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(bottom = 3.dp),
+                        modifier = Modifier.padding(bottom = 2.dp),
                         style = TextStyle(shadow = textShadow)
                     )
                 }
@@ -328,7 +329,7 @@ fun MeasurementOverlay(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Bottom
                 ) {
                     Text(
                         text = "무게",
@@ -340,12 +341,12 @@ fun MeasurementOverlay(
 
                     Row(
                         verticalAlignment = Alignment.Bottom,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        horizontalArrangement = Arrangement.spacedBy(1.dp)
                     ) {
                         Text(
                             text = "${measurement.weightG}",
                             color = OpticalWhite,
-                            fontSize = 20.sp,
+                            fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.SansSerif,
                             style = TextStyle(shadow = textShadow)
@@ -353,9 +354,9 @@ fun MeasurementOverlay(
                         Text(
                             text = "g",
                             color = Color(0xCCFFFFFF),
-                            fontSize = 13.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
-                            modifier = Modifier.padding(bottom = 2.dp),
+                            modifier = Modifier.padding(bottom = 1.dp),
                             style = TextStyle(shadow = textShadow)
                         )
                     }
