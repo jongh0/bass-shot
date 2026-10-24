@@ -84,7 +84,7 @@ data class EnvironmentData(
      * 우상단 날씨 3줄 표시 전용: 3줄 기압 (절대 잘리지 않도록 단독 라인)
      */
     fun formattedWeatherLine3(): String {
-        return if (pressureHpa != null) "기압 ${String.format(java.util.Locale.US, "%.1f", pressureHpa)}hPa" else "기압 -- hPa"
+        return if (pressureHpa != null) "기압 ${Math.round(pressureHpa)}hPa" else "기압 -- hPa"
     }
 
     /**
