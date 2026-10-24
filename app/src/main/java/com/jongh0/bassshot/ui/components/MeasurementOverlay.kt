@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -329,12 +328,12 @@ fun MeasurementOverlay(
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Bottom
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "무게",
                         color = WarmGraphite,
-                        fontSize = 12.sp,
+                        fontSize = 11.sp,
                         fontWeight = FontWeight.Medium,
                         style = TextStyle(shadow = textShadow)
                     )
@@ -346,40 +345,20 @@ fun MeasurementOverlay(
                         Text(
                             text = "${measurement.weightG}",
                             color = OpticalWhite,
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.SemiBold,
                             fontFamily = FontFamily.SansSerif,
                             style = TextStyle(shadow = textShadow)
                         )
                         Text(
                             text = "g",
                             color = Color(0xCCFFFFFF),
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Normal,
                             modifier = Modifier.padding(bottom = 1.dp),
                             style = TextStyle(shadow = textShadow)
                         )
                     }
-                }
-
-                // 3-4. 푸터: 저울(좌) & 케틀벨(우)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_scale),
-                        contentDescription = null,
-                        tint = Color(0x66FFFFFF),
-                        modifier = Modifier.size(15.dp)
-                    )
-                    Icon(
-                        painter = painterResource(R.drawable.ic_weight),
-                        contentDescription = null,
-                        tint = Color(0x66FFFFFF),
-                        modifier = Modifier.size(14.dp)
-                    )
                 }
             }
         }

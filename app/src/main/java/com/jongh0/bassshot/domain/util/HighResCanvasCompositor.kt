@@ -202,14 +202,14 @@ object HighResCanvasCompositor {
 
         // 4. 우상단(TopEnd) 계측 결과 카드 (나노 바나나 목업 디자인 일치)
         val cardWidth = 140f * scaleDp
-        val cardHeight = 106f * scaleDp
+        val cardHeight = 88f * scaleDp
         val cardMarginRight = 12f * scaleDp
         val cardTop = 10f * scaleDp
         val cardRight = width - cardMarginRight
         val cardLeft = cardRight - cardWidth
         val cardBottom = cardTop + cardHeight
         val cardRadius = 16f * scaleDp
-        val cardPaddingH = 14f * scaleDp
+        val cardPaddingH = 12f * scaleDp
 
         val cardBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(56, 0, 0, 0) // FrostedGlassBg
@@ -243,19 +243,19 @@ object HighResCanvasCompositor {
         // 4-3. 길이 수치 ("35.2 cm", 네온 라임 대형)
         val lenNumPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_NEON_LIME)
-            textSize = 26f * scaleFont
+            textSize = 24f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.LEFT
             setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         val lenUnitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_NEON_LIME)
-            textSize = 14f * scaleFont
+            textSize = 13f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.LEFT
             setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
-        val lenNumY = lenLabelY + 24f * scaleFont
+        val lenNumY = lenLabelY + 22f * scaleFont
         val lenNumStr = "${measurement.lengthCm}"
         canvas.drawText(lenNumStr, cardLeft + cardPaddingH, lenNumY, lenNumPaint)
         val lenNumWidth = lenNumPaint.measureText(lenNumStr)
@@ -264,26 +264,26 @@ object HighResCanvasCompositor {
         // 4-4. 무게 섹션 ("무게" 라벨 & "606 g")
         val weightLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_WARM_GRAPHITE)
-            textSize = 12f * scaleFont
+            textSize = 11f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT
             setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         val weightNumPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_OPTICAL_WHITE)
-            textSize = 20f * scaleFont
+            textSize = 15f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.RIGHT
             setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
         val weightUnitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(204, 255, 255, 255)
-            textSize = 13f * scaleFont
+            textSize = 11f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.RIGHT
             setShadowLayer(TEXT_SHADOW_RADIUS_DP * scaleDp, 0f, TEXT_SHADOW_OFFSET_Y_DP * scaleDp, TEXT_SHADOW_COLOR)
         }
-        val weightY = lenNumY + 20f * scaleFont
+        val weightY = lenNumY + 18f * scaleFont
         canvas.drawText("무게", cardLeft + cardPaddingH, weightY, weightLabelPaint)
 
         val weightUnitStr = " g"
@@ -291,11 +291,6 @@ object HighResCanvasCompositor {
         canvas.drawText(weightUnitStr, cardRight - cardPaddingH, weightY, weightUnitPaint)
         val weightUnitW = weightUnitPaint.measureText(weightUnitStr)
         canvas.drawText(weightNumStr, cardRight - cardPaddingH - weightUnitW, weightY, weightNumPaint)
-
-        // 4-5. 푸터: 저울(좌) & 케틀벨(우)
-        val footerY = cardBottom - 16f * scaleDp
-        drawVector(context, canvas, R.drawable.ic_scale, cardLeft + cardPaddingH, footerY, 15f * scaleDp, Color.argb(102, 255, 255, 255))
-        drawVector(context, canvas, R.drawable.ic_weight, cardRight - cardPaddingH - 14f * scaleDp, footerY, 14f * scaleDp, Color.argb(102, 255, 255, 255))
     }
 
     private fun drawCaliperBracketOnCanvas(
