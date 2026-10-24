@@ -51,15 +51,19 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.R
+import com.jongh0.bassshot.domain.model.BassLengthTier
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.NormalizedPoint
+import com.jongh0.bassshot.domain.model.lengthTier
 import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
 import com.jongh0.bassshot.ui.theme.ElectricCyan
 import com.jongh0.bassshot.ui.theme.ElectricCyanGlow
 import com.jongh0.bassshot.ui.theme.FrostedGlassBg
+import com.jongh0.bassshot.ui.theme.LunkerGold
 import com.jongh0.bassshot.ui.theme.NeonLime
 import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.PillBadgeBg
+import com.jongh0.bassshot.ui.theme.TitaniumSilver
 import com.jongh0.bassshot.ui.theme.WarmGraphite
 import kotlin.math.hypot
 
@@ -293,7 +297,14 @@ fun MeasurementOverlay(
                     )
                 }
 
-                // 3-2. 길이 섹션 (한 줄: "길이" ... "26.5 cm")
+                // 3-2. 길이 섹션 (한 줄: "길이" ... "26.5 cm", 1/2짜, 3짜, 4짜, 5짜 이상 티어별 컬러)
+                val lengthColor = when (measurement.lengthTier) {
+                    BassLengthTier.TIER_UNDER_30 -> TitaniumSilver
+                    BassLengthTier.TIER_30S -> NeonLime
+                    BassLengthTier.TIER_40S -> ElectricCyan
+                    BassLengthTier.TIER_50_PLUS -> LunkerGold
+                }
+
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -303,7 +314,7 @@ fun MeasurementOverlay(
                 ) {
                     Text(
                         text = "길이",
-                        color = NeonLime,
+                        color = lengthColor,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         style = TextStyle(
@@ -317,7 +328,7 @@ fun MeasurementOverlay(
                     ) {
                         Text(
                             text = "${measurement.lengthCm}",
-                            color = NeonLime,
+                            color = lengthColor,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             fontFamily = FontFamily.SansSerif,
@@ -327,7 +338,7 @@ fun MeasurementOverlay(
                         )
                         Text(
                             text = "cm",
-                            color = NeonLime,
+                            color = lengthColor,
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(bottom = 1.dp),

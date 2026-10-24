@@ -43,3 +43,25 @@ data class BassMeasurementUiModel(
     val cmPerNormalizedUnit: Float,
     val imageAspectRatio: Float = 0.75f // width / height (3:4 ratio = 0.75)
 )
+
+/**
+ * 배스 체장 구간 분류 (1/2짜, 3짜, 4짜, 5짜 이상)
+ */
+enum class BassLengthTier {
+    TIER_UNDER_30, // 1/2짜 (< 30.0cm): 짜치 (TitaniumSilver)
+    TIER_30S,      // 3짜 (30.0cm ~ 39.9cm): 준수한 배스 (NeonLime)
+    TIER_40S,      // 4짜 (40.0cm ~ 49.9cm): 대형 배스 (ElectricCyan)
+    TIER_50_PLUS;  // 5짜 이상 (>= 50.0cm): 런커 / 대물 (LunkerGold)
+
+    companion object {
+        fun fromLength(lengthCm: Float): BassLengthTier = when {
+            lengthCm < 30.0f -> TIER_UNDER_30
+            lengthCm < 40.0f -> TIER_30S
+            lengthCm < 50.0f -> TIER_40S
+            else -> TIER_50_PLUS
+        }
+    }
+}
+
+val BassMeasurementUiModel.lengthTier: BassLengthTier
+    get() = BassLengthTier.fromLength(lengthCm)

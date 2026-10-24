@@ -16,9 +16,11 @@ import android.text.TextUtils
 import androidx.annotation.DrawableRes
 import androidx.core.content.ContextCompat
 import com.jongh0.bassshot.R
+import com.jongh0.bassshot.domain.model.BassLengthTier
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.EnvironmentData
 import com.jongh0.bassshot.domain.model.PressureLevel
+import com.jongh0.bassshot.domain.model.lengthTier
 
 object HighResCanvasCompositor {
 
@@ -26,6 +28,8 @@ object HighResCanvasCompositor {
     private const val COLOR_ELECTRIC_CYAN = "#00E5FF"
     private const val COLOR_NEON_LIME = "#A3E635"
     private const val COLOR_SUN_AMBER = "#FBBF24"
+    private const val COLOR_TITANIUM_SILVER = "#E2E4E9"
+    private const val COLOR_LUNKER_GOLD = "#FFB703"
     private const val COLOR_WARM_GRAPHITE = "#9496A1"
     private const val COLOR_MUTED_SILVER = "#C4C7D0"
 
@@ -228,12 +232,20 @@ object HighResCanvasCompositor {
         drawVector(context, canvas, R.drawable.ic_ruler, cardLeft + cardPaddingH, headerY, 15f * scaleDp, Color.argb(153, 255, 255, 255))
         drawVector(context, canvas, R.drawable.ic_fish, cardRight - cardPaddingH - 16f * scaleDp, headerY, 16f * scaleDp, Color.argb(153, 255, 255, 255))
 
-        // 4-2. 길이 섹션 (한 줄: "길이" ... "26.5 cm")
+        // 4-2. 길이 섹션 (한 줄: "길이" ... "26.5 cm", 1/2짜, 3짜, 4짜, 5짜 이상 티어별 컬러)
         val row2Y = headerY + lineHeight + rowGap
         val textBaselineY2 = row2Y + lineHeight - 3f * scaleDp
 
+        val lengthColorHex = when (measurement.lengthTier) {
+            BassLengthTier.TIER_UNDER_30 -> COLOR_TITANIUM_SILVER
+            BassLengthTier.TIER_30S -> COLOR_NEON_LIME
+            BassLengthTier.TIER_40S -> COLOR_ELECTRIC_CYAN
+            BassLengthTier.TIER_50_PLUS -> COLOR_LUNKER_GOLD
+        }
+        val lengthColorInt = Color.parseColor(lengthColorHex)
+
         val lenLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_NEON_LIME)
+            color = lengthColorInt
             textSize = 12f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.LEFT
@@ -241,13 +253,13 @@ object HighResCanvasCompositor {
         canvas.drawText("길이", cardLeft + cardPaddingH, textBaselineY2, lenLabelPaint)
 
         val lenUnitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_NEON_LIME)
+            color = lengthColorInt
             textSize = 11f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.RIGHT
         }
         val lenNumPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_NEON_LIME)
+            color = lengthColorInt
             textSize = 14f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.RIGHT
