@@ -104,7 +104,7 @@ class IssueReportRepository(
             }
 
             // 3. 이슈 본문 및 제목 조합
-            onProgress("이슈 내용 작성 및 등록 중...")
+            onProgress("제보 내용 등록 중...")
             val issueTitle = IssueReportFormatter.buildIssueTitle(input)
             val issueBody = IssueReportFormatter.buildIssueBody(context, input, originalImageUrl, compositeImageUrl)
 

@@ -154,7 +154,7 @@ fun IssueReportDialog(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "GitHub 이슈 등록 완료!",
+                            text = "제보가 완료되었습니다!",
                             color = OpticalWhite,
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold
@@ -210,7 +210,7 @@ fun IssueReportDialog(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = "GitHub 토큰(GH_ISSUE_TOKEN)이 설정되지 않아 이슈를 등록할 수 없습니다.",
+                            text = "제보 서비스 연동 키가 설정되지 않아 등록할 수 없습니다.",
                             color = Color(0xFFFFCCBC),
                             fontSize = 12.sp,
                             lineHeight = 16.sp
@@ -231,7 +231,7 @@ fun IssueReportDialog(
 
                 // 5. 안내 설명
                 Text(
-                    text = "발생한 문제점을 간단히 적어주시면 원본 사진, 계측 데이터, 시스템 로그와 함께 GitHub 이슈로 전송되어 AI 정확도 개선에 반영됩니다.",
+                    text = "발생한 문제점을 간단히 적어주시면 사진, 계측 데이터, 시스템 로그와 함께 전송되어 AI 정확도 개선에 반영됩니다.",
                     color = WarmGraphite,
                     fontSize = 12.5.sp,
                     lineHeight = 17.sp
@@ -401,7 +401,7 @@ fun IssueReportDialog(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         Text(
-                            text = submitProgress ?: "GitHub 이슈 등록 중...",
+                            text = submitProgress ?: "제보 등록 중...",
                             color = OpticalWhite,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium
@@ -457,7 +457,7 @@ fun IssueReportDialog(
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "이슈 제보 등록",
+                                text = "제보 등록",
                                 color = if (canSubmit) ObsidianBlack else WarmGraphite,
                                 fontSize = 13.5.sp,
                                 fontWeight = FontWeight.Bold

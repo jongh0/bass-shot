@@ -206,7 +206,7 @@ fun SettingsDialog(
                         )
                     }
                     Text(
-                        text = "GitHub 이슈 등록",
+                        text = "개발팀에 전송",
                         color = WarmGraphite,
                         fontSize = 11.5.sp
                     )
