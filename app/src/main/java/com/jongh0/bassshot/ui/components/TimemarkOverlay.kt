@@ -40,7 +40,6 @@ import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.R
 import com.jongh0.bassshot.domain.model.EnvironmentData
 import com.jongh0.bassshot.ui.theme.FrostedGlassBg
-import com.jongh0.bassshot.ui.theme.FrostedGlassBorder
 import com.jongh0.bassshot.ui.theme.OpticalWhite
 
 @Composable
@@ -71,7 +70,6 @@ fun TimemarkOverlay(
                 .align(Alignment.TopStart)
                 .width(140.dp)
                 .background(FrostedGlassBg)
-                .border(1.dp, FrostedGlassBorder)
                 .padding(horizontal = 14.dp, vertical = 12.dp)
         ) {
             Column(
@@ -89,7 +87,7 @@ fun TimemarkOverlay(
                         painter = painterResource(R.drawable.ic_weather_cloud),
                         contentDescription = null,
                         tint = Color(0xCCFFFFFF),
-                        modifier = Modifier.size(15.dp).padding(top = 1.5.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Text(
                         text = environmentData.formattedWeatherLine1(),
@@ -115,7 +113,7 @@ fun TimemarkOverlay(
                         painter = painterResource(R.drawable.ic_wind),
                         contentDescription = null,
                         tint = Color(0xCCFFFFFF),
-                        modifier = Modifier.size(15.dp).padding(top = 1.5.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Text(
                         text = environmentData.formattedWeatherLine2(),
@@ -141,7 +139,7 @@ fun TimemarkOverlay(
                         painter = painterResource(R.drawable.ic_barometer),
                         contentDescription = null,
                         tint = Color(0xCCFFFFFF),
-                        modifier = Modifier.size(15.dp).padding(top = 1.5.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                     Text(
                         text = environmentData.formattedWeatherLine3(),
@@ -216,7 +214,7 @@ fun TimemarkOverlay(
                         painter = painterResource(R.drawable.ic_location_pin),
                         contentDescription = null,
                         tint = OpticalWhite,
-                        modifier = Modifier.size(14.dp).padding(top = 2.dp)
+                        modifier = Modifier.size(14.dp)
                     )
                     Text(
                         text = environmentData.formattedAddressOnly(),

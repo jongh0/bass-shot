@@ -215,14 +215,8 @@ object HighResCanvasCompositor {
             color = Color.argb(56, 0, 0, 0) // FrostedGlassBg
             style = Paint.Style.FILL
         }
-        val cardBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(40, 255, 255, 255) // FrostedGlassBorder
-            strokeWidth = 1f * scaleDp
-            style = Paint.Style.STROKE
-        }
         val cardRect = RectF(cardLeft, 0f, cardRight, cardBottom)
         canvas.drawRect(cardRect, cardBgPaint)
-        canvas.drawRect(cardRect, cardBorderPaint)
 
         val rowGap = 8f * scaleDp
         val lineHeight = 16f * scaleFont
@@ -262,12 +256,12 @@ object HighResCanvasCompositor {
         val lenUnitW = lenUnitPaint.measureText(lenUnitStr)
         canvas.drawText(lenNumStr, cardRight - cardPaddingH - lenUnitW, textBaselineY2, lenNumPaint)
 
-        // 4-3. 무게 섹션 (한 줄: "무게" ... "606 g")
+        // 4-3. 무게 섹션 (한 줄: "무게" ... "606 g", 기압과 동일한 컬러 및 폰트 크기)
         val row3Y = row2Y + lineHeight + rowGap
         val textBaselineY3 = row3Y + lineHeight - 3f * scaleDp
 
         val weightLabelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(COLOR_WARM_GRAPHITE)
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
             textSize = 12f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.LEFT
@@ -275,14 +269,14 @@ object HighResCanvasCompositor {
         canvas.drawText("무게", cardLeft + cardPaddingH, textBaselineY3, weightLabelPaint)
 
         val weightUnitPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(204, 255, 255, 255)
-            textSize = 11f * scaleFont
+            color = Color.parseColor(COLOR_OPTICAL_WHITE)
+            textSize = 12f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.NORMAL)
             textAlign = Paint.Align.RIGHT
         }
         val weightNumPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_OPTICAL_WHITE)
-            textSize = 14f * scaleFont
+            textSize = 12f * scaleFont
             typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
             textAlign = Paint.Align.RIGHT
         }
@@ -378,30 +372,23 @@ object HighResCanvasCompositor {
             color = Color.argb(56, 0, 0, 0)
             style = Paint.Style.FILL
         }
-        val cardBorderPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.argb(40, 255, 255, 255)
-            strokeWidth = 1f * scaleDp
-            style = Paint.Style.STROKE
-        }
         canvas.drawRect(weatherCardRect, cardBgPaint)
-        canvas.drawRect(weatherCardRect, cardBorderPaint)
 
-        // 3줄 행 드로잉 (아이콘을 한글 텍스트 시각적 중심과 일치하도록 오프셋 보정)
+        // 3줄 행 드로잉
         val textX = cardLeft + cardPaddingH + iconSize + iconTextGap
         val iconX = cardLeft + cardPaddingH
         val row1Y = cardTop + cardPaddingV
         val row2Y = row1Y + lineHeight + rowGap
         val row3Y = row2Y + lineHeight + rowGap
         val iconTint = Color.argb(204, 255, 255, 255)
-        val weatherIconYOffset = 1.8f * scaleDp
 
-        drawVector(context, canvas, R.drawable.ic_weather_cloud, iconX, row1Y + weatherIconYOffset, iconSize, iconTint)
+        drawVector(context, canvas, R.drawable.ic_weather_cloud, iconX, row1Y, iconSize, iconTint)
         canvas.drawText(wLine1, textX, row1Y + lineHeight - 3f * scaleDp, wPaint)
 
-        drawVector(context, canvas, R.drawable.ic_wind, iconX, row2Y + weatherIconYOffset, iconSize, iconTint)
+        drawVector(context, canvas, R.drawable.ic_wind, iconX, row2Y, iconSize, iconTint)
         canvas.drawText(wLine2, textX, row2Y + lineHeight - 3f * scaleDp, wPaint)
 
-        drawVector(context, canvas, R.drawable.ic_barometer, iconX, row3Y + weatherIconYOffset, iconSize, iconTint)
+        drawVector(context, canvas, R.drawable.ic_barometer, iconX, row3Y, iconSize, iconTint)
         canvas.drawText(wLine3, textX, row3Y + lineHeight - 3f * scaleDp, wPaint)
 
         // 2. 우측 미니 지도 크기 및 텍스트 허용 너비 계산
@@ -437,8 +424,8 @@ object HighResCanvasCompositor {
         val addressHeight = addressLayout.height.toFloat()
         val addressTopY = height - marginB - addressHeight
 
-        // 핀 아이콘 드로잉 (한글 텍스트 높이 및 베이스라인과 시각적 중심 일치 보정)
-        drawVector(context, canvas, R.drawable.ic_location_pin, marginH, addressTopY + 3.2f * scaleDp, pinIconSize, Color.WHITE)
+        // 핀 아이콘 드로잉
+        drawVector(context, canvas, R.drawable.ic_location_pin, marginH, addressTopY + 1f * scaleDp, pinIconSize, Color.WHITE)
 
         canvas.save()
         canvas.translate(marginH + addressIndent, addressTopY)

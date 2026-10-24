@@ -57,7 +57,6 @@ import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
 import com.jongh0.bassshot.ui.theme.ElectricCyan
 import com.jongh0.bassshot.ui.theme.ElectricCyanGlow
 import com.jongh0.bassshot.ui.theme.FrostedGlassBg
-import com.jongh0.bassshot.ui.theme.FrostedGlassBorder
 import com.jongh0.bassshot.ui.theme.NeonLime
 import com.jongh0.bassshot.ui.theme.OpticalWhite
 import com.jongh0.bassshot.ui.theme.PillBadgeBg
@@ -264,7 +263,6 @@ fun MeasurementOverlay(
                 .align(Alignment.TopEnd)
                 .width(140.dp)
                 .background(FrostedGlassBg)
-                .border(1.dp, FrostedGlassBorder)
                 .padding(horizontal = 14.dp, vertical = 12.dp)
                 .alpha(if (isDragging) 0.45f else 1.0f)
         ) {
@@ -350,7 +348,7 @@ fun MeasurementOverlay(
                 ) {
                     Text(
                         text = "무게",
-                        color = WarmGraphite,
+                        color = OpticalWhite,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Medium,
                         style = TextStyle(
@@ -359,13 +357,13 @@ fun MeasurementOverlay(
                     )
 
                     Row(
-                        verticalAlignment = Alignment.Bottom,
+                        verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(1.dp)
                     ) {
                         Text(
                             text = "${measurement.weightG}",
                             color = OpticalWhite,
-                            fontSize = 14.sp,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.SemiBold,
                             fontFamily = FontFamily.SansSerif,
                             style = TextStyle(
@@ -374,10 +372,9 @@ fun MeasurementOverlay(
                         )
                         Text(
                             text = "g",
-                            color = Color(0xCCFFFFFF),
-                            fontSize = 11.sp,
+                            color = OpticalWhite,
+                            fontSize = 12.sp,
                             fontWeight = FontWeight.Normal,
-                            modifier = Modifier.padding(bottom = 1.dp),
                             style = TextStyle(
                                 lineHeight = 16.sp
                             )
