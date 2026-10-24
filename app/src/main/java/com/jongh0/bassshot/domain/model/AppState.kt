@@ -34,5 +34,10 @@ data class BassShotUiState(
     val savedPhotos: List<SavedPhotoItem> = emptyList(),
     val isPhotoViewerOpen: Boolean = false,
     val initialViewerPhotoIndex: Int = 0,
-    val sourceViewerIndex: Int? = null
+    val sourceViewerIndex: Int? = null,
+    val showIssueReportDialog: Boolean = false,
+    val issueReportType: IssueReportType = IssueReportType.MEASUREMENT_INACCURATE,
+    val isSubmittingIssue: Boolean = false,
+    val issueSubmitProgress: String? = null,
+    val lastCreatedIssueUrl: String? = null
 )

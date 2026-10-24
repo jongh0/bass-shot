@@ -15,6 +15,8 @@ val OpticalWhiteGlow = Color(0x40FFFFFF) // 드래그 시 은은한 화이트 �
 val TitaniumSilver = Color(0xFFE2E4E9) // 세련된 티타늄 실버 (액션 버튼, 주요 수치)
 val StudioBlue = Color(0xFF38BDF8) // 차분한 아이스 스튜디오 블루 포인트 (필요 시 미세 강조)
 val ErrorRed = Color(0xFFEF4444) // 에러
+val SafetyOrange = Color(0xFFFF9800) // 계측 오류 제보 포인트 오렌지
+val GunmetalGrey = Color(0xFF32343A)
 
 // Typography & Text (눈이 편안한 은은한 실버 & 웜 그래파이트)
 val MutedSilver = Color(0xFFE2E4E9) // 메인 텍스트 (눈부시지 않은 정제된 실버)

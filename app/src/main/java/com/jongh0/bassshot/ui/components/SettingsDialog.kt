@@ -2,6 +2,7 @@ package com.jongh0.bassshot.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,11 +10,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -38,6 +43,7 @@ import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.ObsidianBlack
 import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.SafetyOrange
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
 import com.jongh0.bassshot.ui.theme.TitaniumSilver
 import com.jongh0.bassshot.ui.theme.WarmGraphite
@@ -47,7 +53,8 @@ fun SettingsDialog(
     currentGloveWidthCm: Float,
     currentSaveOriginal: Boolean,
     onDismissRequest: () -> Unit,
-    onSaveSettings: (gloveWidthCm: Float, saveOriginal: Boolean) -> Unit
+    onSaveSettings: (gloveWidthCm: Float, saveOriginal: Boolean) -> Unit,
+    onReportGeneralIssue: (() -> Unit)? = null
 ) {
     var gloveWidthText by remember { mutableStateOf(currentGloveWidthCm.toString()) }
     var saveOriginalState by remember { mutableStateOf(currentSaveOriginal) }
@@ -165,6 +172,45 @@ fun SettingsDialog(
                         uncheckedTrackColor = AnodizedCharcoal
                     )
                 )
+            }
+
+            if (onReportGeneralIssue != null) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(AnodizedCharcoal)
+                        .border(1.dp, SubtleTitanium, RoundedCornerShape(8.dp))
+                        .clickable {
+                            onDismissRequest()
+                            onReportGeneralIssue()
+                        }
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.BugReport,
+                            contentDescription = null,
+                            tint = SafetyOrange,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "문제 제보 및 피드백",
+                            color = MutedSilver,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                    Text(
+                        text = "GitHub 이슈 등록",
+                        color = WarmGraphite,
+                        fontSize = 11.5.sp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

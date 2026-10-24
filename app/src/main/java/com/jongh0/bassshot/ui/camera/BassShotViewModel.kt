@@ -12,6 +12,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.jongh0.bassshot.data.local.UserPreferencesRepository
 import com.jongh0.bassshot.data.repository.EnvironmentRepository
+import com.jongh0.bassshot.data.repository.IssueReportRepository
 import com.jongh0.bassshot.data.repository.MeasurementRepository
 import com.jongh0.bassshot.data.repository.MediaStoreRepository
 import com.jongh0.bassshot.data.repository.UpdateRepository
@@ -19,6 +20,8 @@ import com.jongh0.bassshot.domain.model.AppState
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.BassShotUiState
 import com.jongh0.bassshot.domain.model.CameraMode
+import com.jongh0.bassshot.domain.model.IssueReportInput
+import com.jongh0.bassshot.domain.model.IssueReportType
 import com.jongh0.bassshot.domain.model.SavedPhotoItem
 import com.jongh0.bassshot.domain.util.AppLogger
 import com.jongh0.bassshot.domain.util.BitmapProcessor
@@ -46,6 +49,7 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
     private val environmentRepository = EnvironmentRepository(application)
     private val mediaStoreRepository = MediaStoreRepository(application)
     private val updateRepository = UpdateRepository(application)
+    private val issueReportRepository = IssueReportRepository(application)
 
     private val _uiState = MutableStateFlow(BassShotUiState())
     val uiState: StateFlow<BassShotUiState> = _uiState.asStateFlow()
@@ -599,6 +603,141 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
 
     fun dismissUpdateDialog() {
         _uiState.update { it.copy(showUpdateDialog = false) }
+    }
+
+    fun hasValidGitHubToken(): Boolean = issueReportRepository.hasValidToken()
+
+    /**
+     * GitHub 이슈 제보 다이얼로그 열기
+     */
+    fun openIssueReportDialog(type: IssueReportType = IssueReportType.MEASUREMENT_INACCURATE) {
+        _uiState.update {
+            it.copy(
+                showIssueReportDialog = true,
+                issueReportType = type,
+                lastCreatedIssueUrl = null,
+                issueSubmitProgress = null
+            )
+        }
+    }
+
+    /**
+     * 사진 뷰어에서 현재 사진을 이슈 제보용으로 열기
+     */
+    fun openIssueReportForSavedPhoto(item: SavedPhotoItem) {
+        viewModelScope.launch(Dispatchers.Default) {
+            try {
+                val decoded = BitmapProcessor.decodeUriWithExif(getApplication(), item.uri)
+                _uiState.update {
+                    it.copy(
+                        capturedOriginalBitmap = decoded.bitmap,
+                        showIssueReportDialog = true,
+                        issueReportType = IssueReportType.SAVED_PHOTO,
+                        lastCreatedIssueUrl = null,
+                        issueSubmitProgress = null
+                    )
+                }
+            } catch (e: Exception) {
+                AppLogger.e("ViewModel", "Failed to decode photo for issue report: ${e.message}", e)
+            }
+        }
+    }
+
+    fun dismissIssueReportDialog() {
+        _uiState.update {
+            it.copy(
+                showIssueReportDialog = false,
+                isSubmittingIssue = false,
+                issueSubmitProgress = null,
+                lastCreatedIssueUrl = null
+            )
+        }
+    }
+
+    /**
+     * 이슈 리포트 전송 실행
+     */
+    fun submitIssueReport(
+        comment: String,
+        actualLength: Float?,
+        actualWeight: Int?,
+        includeLogs: Boolean,
+        containerWidthDp: Float = 360f,
+        fontScale: Float = 1.0f
+    ) {
+        val currentState = _uiState.value
+        val originalBitmap = currentState.capturedOriginalBitmap
+        val measurement = currentState.measurement
+        val env = currentState.environmentData
+        val reportType = currentState.issueReportType
+
+        viewModelScope.launch(Dispatchers.Default) {
+            _uiState.update {
+                it.copy(
+                    isSubmittingIssue = true,
+                    issueSubmitProgress = "이미지 준비 중...",
+                    errorMessage = null
+                )
+            }
+
+            try {
+                // 계측 합성본 비트맵 생성 (원본 비트맵이 있을 때)
+                val compositeBitmap = if (originalBitmap != null) {
+                    HighResCanvasCompositor.composite(
+                        originalBitmap = originalBitmap,
+                        environmentData = env,
+                        measurement = measurement,
+                        isImportedPhoto = currentState.isImportedPhoto,
+                        containerWidthDp = containerWidthDp,
+                        fontScale = fontScale
+                    )
+                } else null
+
+                val input = IssueReportInput(
+                    reportType = reportType,
+                    userComment = comment,
+                    actualLengthCm = actualLength,
+                    actualWeightG = actualWeight,
+                    originalBitmap = originalBitmap,
+                    compositeBitmap = compositeBitmap,
+                    measurement = measurement,
+                    environmentData = env,
+                    includeLogs = includeLogs
+                )
+
+                val result = issueReportRepository.submitReport(input) { progress ->
+                    _uiState.update { it.copy(issueSubmitProgress = progress) }
+                }
+
+                if (result.isSuccess) {
+                    val issueResponse = result.getOrThrow()
+                    _uiState.update {
+                        it.copy(
+                            isSubmittingIssue = false,
+                            issueSubmitProgress = null,
+                            lastCreatedIssueUrl = issueResponse.htmlUrl
+                        )
+                    }
+                } else {
+                    val err = result.exceptionOrNull()?.localizedMessage ?: "알 수 없는 오류"
+                    _uiState.update {
+                        it.copy(
+                            isSubmittingIssue = false,
+                            issueSubmitProgress = null,
+                            errorMessage = "이슈 등록 실패: $err"
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isSubmittingIssue = false,
+                        issueSubmitProgress = null,
+                        errorMessage = "이슈 전송 중 오류 발생: ${e.localizedMessage}"
+                    )
+                }
+            }
+        }
     }
 
     override fun onCleared() {

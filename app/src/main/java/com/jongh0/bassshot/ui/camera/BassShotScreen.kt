@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
@@ -65,6 +66,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.AppState
 import com.jongh0.bassshot.domain.model.CameraMode
+import com.jongh0.bassshot.domain.model.IssueReportType
+import com.jongh0.bassshot.ui.components.IssueReportDialog
 import com.jongh0.bassshot.ui.components.MeasurementOverlay
 import com.jongh0.bassshot.ui.components.PhotoViewerDialog
 import com.jongh0.bassshot.ui.components.SettingsDialog
@@ -75,6 +78,7 @@ import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.ObsidianBlack
 import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.SafetyOrange
 import com.jongh0.bassshot.ui.theme.SmokeGlass
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
 import com.jongh0.bassshot.ui.theme.TitaniumSilver
@@ -102,6 +106,8 @@ fun BassShotScreen(
     }
 
     var showDiscardConfirmDialog by remember { mutableStateOf(false) }
+    var containerWidthDp by remember { mutableFloatStateOf(360f) }
+    val fontScale = LocalDensity.current.fontScale
 
     // 셔터 클릭 시 이미지 영역 전체가 살짝 투명한 흰색으로 번쩍이는 플래시 시각 피드백 (찰칵 셔터음 길이 약 150~160ms와 1:1 매칭)
     val flashAlpha = remember { Animatable(0f) }
@@ -118,7 +124,7 @@ fun BassShotScreen(
 
     val isResultSaved = uiState.appState == AppState.RESULT_SAVED
     val isAlreadySaved = uiState.savedPhotoUriString != null
-    val isOtherOverlayOpen = uiState.isPhotoViewerOpen || uiState.showSettingsDialog || uiState.showUpdateDialog
+    val isOtherOverlayOpen = uiState.isPhotoViewerOpen || uiState.showSettingsDialog || uiState.showUpdateDialog || uiState.showIssueReportDialog
 
     // 계측 화면(RESULT_SAVED)에서 시스템 뒤로가기 버튼 / 제스처 처리
     // 카메라 화면에서는 BackHandler가 비활성화되어 자연스럽게 앱이 종료됨
@@ -159,19 +165,42 @@ fun BassShotScreen(
                     letterSpacing = 1.8.sp
                 )
 
-                val isCameraPreview = uiState.appState == AppState.CAMERA_PREVIEW
-                IconButton(
-                    onClick = { viewModel.openSettingsDialog() },
-                    enabled = isCameraPreview,
-                    modifier = Modifier
-                        .size(36.dp)
-                        .alpha(if (isCameraPreview) 1.0f else 0.35f)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Settings,
-                        contentDescription = "설정",
-                        tint = MutedSilver
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    if (uiState.appState == AppState.RESULT_SAVED) {
+                        IconButton(
+                            onClick = {
+                                val reportType = if (uiState.measurement?.isBassDetected == true) {
+                                    IssueReportType.MEASUREMENT_INACCURATE
+                                } else {
+                                    IssueReportType.MEASUREMENT_FAILED
+                                }
+                                viewModel.openIssueReportDialog(reportType)
+                            },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.BugReport,
+                                contentDescription = "계측 오류 제보",
+                                tint = SafetyOrange
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+
+                    val isCameraPreview = uiState.appState == AppState.CAMERA_PREVIEW
+                    IconButton(
+                        onClick = { viewModel.openSettingsDialog() },
+                        enabled = isCameraPreview,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .alpha(if (isCameraPreview) 1.0f else 0.35f)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "설정",
+                            tint = MutedSilver
+                        )
+                    }
                 }
             }
 
@@ -182,9 +211,6 @@ fun BassShotScreen(
             } else {
                 3f / 4f
             }
-
-            var containerWidthDp by remember { mutableFloatStateOf(360f) }
-            val fontScale = LocalDensity.current.fontScale
 
             BoxWithConstraints(
                 modifier = Modifier
@@ -544,8 +570,7 @@ fun BassShotScreen(
                                         .clip(RoundedCornerShape(8.dp))
                                         .background(AnodizedCharcoal)
                                         .border(1.dp, SubtleTitanium, RoundedCornerShape(8.dp))
-                                        .clickable { viewModel.enableManualMeasurement() }
-                                        .padding(horizontal = 14.dp, vertical = 9.dp),
+                                        .padding(horizontal = 14.dp, vertical = 6.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -555,20 +580,55 @@ fun BassShotScreen(
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Medium
                                     )
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            imageVector = Icons.Default.Edit,
-                                            contentDescription = "직접 계측",
-                                            tint = TitaniumSilver,
-                                            modifier = Modifier.size(14.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(4.dp))
-                                        Text(
-                                            text = "직접 계측",
-                                            color = TitaniumSilver,
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.SemiBold
-                                        )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        // 미인식 제보 버튼
+                                        Row(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .clickable { viewModel.openIssueReportDialog(IssueReportType.MEASUREMENT_FAILED) }
+                                                .padding(horizontal = 6.dp, vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.BugReport,
+                                                contentDescription = "미인식 제보",
+                                                tint = SafetyOrange,
+                                                modifier = Modifier.size(13.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(3.dp))
+                                            Text(
+                                                text = "오류 제보",
+                                                color = SafetyOrange,
+                                                fontSize = 11.5.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
+
+                                        // 직접 계측 버튼
+                                        Row(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(4.dp))
+                                                .clickable { viewModel.enableManualMeasurement() }
+                                                .padding(horizontal = 6.dp, vertical = 4.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "직접 계측",
+                                                tint = TitaniumSilver,
+                                                modifier = Modifier.size(13.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(3.dp))
+                                            Text(
+                                                text = "직접 계측",
+                                                color = TitaniumSilver,
+                                                fontSize = 11.5.sp,
+                                                fontWeight = FontWeight.SemiBold
+                                            )
+                                        }
                                     }
                                 }
                                 Spacer(modifier = Modifier.height(10.dp))
@@ -669,6 +729,9 @@ fun BassShotScreen(
                 onDismissRequest = { viewModel.dismissSettingsDialog() },
                 onSaveSettings = { width, saveOrig ->
                     viewModel.updateSettings(width, saveOrig)
+                },
+                onReportGeneralIssue = {
+                    viewModel.openIssueReportDialog(IssueReportType.GENERAL)
                 }
             )
         }
@@ -682,6 +745,30 @@ fun BassShotScreen(
             )
         }
 
+        // GitHub 이슈 제보 다이얼로그
+        if (uiState.showIssueReportDialog) {
+            IssueReportDialog(
+                reportType = uiState.issueReportType,
+                hasValidToken = viewModel.hasValidGitHubToken(),
+                isSubmitting = uiState.isSubmittingIssue,
+                submitProgress = uiState.issueSubmitProgress,
+                createdIssueUrl = uiState.lastCreatedIssueUrl,
+                errorMessage = uiState.errorMessage,
+                hasMeasurement = uiState.measurement != null,
+                onDismissRequest = { viewModel.dismissIssueReportDialog() },
+                onSubmit = { comment, actualLength, actualWeight, includeLogs ->
+                    viewModel.submitIssueReport(
+                        comment = comment,
+                        actualLength = actualLength,
+                        actualWeight = actualWeight,
+                        includeLogs = includeLogs,
+                        containerWidthDp = containerWidthDp,
+                        fontScale = fontScale
+                    )
+                }
+            )
+        }
+
         // 사진 뷰어 다이얼로그 (DCIM/BassShot 앱 저장 사진 전용 스와이프 뷰어)
         if (uiState.isPhotoViewerOpen) {
             PhotoViewerDialog(
@@ -689,7 +776,8 @@ fun BassShotScreen(
                 initialIndex = uiState.initialViewerPhotoIndex,
                 onDismissRequest = { viewModel.closePhotoViewer() },
                 onDeletePhoto = { viewModel.deletePhoto(it) },
-                onMeasurePhoto = { photo, index -> viewModel.measurePhotoFromViewer(photo, index) }
+                onMeasurePhoto = { photo, index -> viewModel.measurePhotoFromViewer(photo, index) },
+                onReportIssue = { photo -> viewModel.openIssueReportForSavedPhoto(photo) }
             )
         }
 

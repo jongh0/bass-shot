@@ -35,6 +35,8 @@ android {
         buildConfigField("String", "MAPS_API_KEY", "\"${getSecretProperty("MAPS_API_KEY")}\"")
         buildConfigField("String", "GITHUB_REPO_OWNER", "\"jongh0\"")
         buildConfigField("String", "GITHUB_REPO_NAME", "\"bass-shot\"")
+        val ghToken = getSecretProperty("GH_ISSUE_TOKEN").ifBlank { getSecretProperty("GITHUB_ISSUE_TOKEN") }
+        buildConfigField("String", "GH_ISSUE_TOKEN", "\"$ghToken\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

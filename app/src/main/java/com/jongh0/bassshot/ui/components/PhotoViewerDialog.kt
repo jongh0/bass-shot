@@ -25,6 +25,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Share
@@ -57,6 +58,7 @@ import com.jongh0.bassshot.domain.model.SavedPhotoItem
 import com.jongh0.bassshot.ui.theme.AnodizedCharcoal
 import com.jongh0.bassshot.ui.theme.MutedSilver
 import com.jongh0.bassshot.ui.theme.OpticalWhite
+import com.jongh0.bassshot.ui.theme.SafetyOrange
 import com.jongh0.bassshot.ui.theme.SubtleTitanium
 import com.jongh0.bassshot.ui.theme.TitaniumSilver
 import com.jongh0.bassshot.ui.theme.WarmGraphite
@@ -67,7 +69,8 @@ fun PhotoViewerDialog(
     initialIndex: Int = 0,
     onDismissRequest: () -> Unit,
     onDeletePhoto: (SavedPhotoItem) -> Unit,
-    onMeasurePhoto: ((SavedPhotoItem, Int) -> Unit)? = null
+    onMeasurePhoto: ((SavedPhotoItem, Int) -> Unit)? = null,
+    onReportIssue: ((SavedPhotoItem) -> Unit)? = null
 ) {
     if (photos.isEmpty()) {
         onDismissRequest()
@@ -249,6 +252,28 @@ fun PhotoViewerDialog(
                                     imageVector = Icons.Default.Straighten,
                                     contentDescription = "AI 계측하기",
                                     tint = OpticalWhite,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+
+                        // [액션 3.5] 오류 제보 버튼 (기저장된 사진에 대해 오류 제보)
+                        if (onReportIssue != null && currentPhoto != null) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(AnodizedCharcoal)
+                                    .border(1.dp, SubtleTitanium, CircleShape)
+                                    .clickable {
+                                        onReportIssue(currentPhoto)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.BugReport,
+                                    contentDescription = "오류 제보",
+                                    tint = SafetyOrange,
                                     modifier = Modifier.size(22.dp)
                                 )
                             }
