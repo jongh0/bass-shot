@@ -207,7 +207,8 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                     measurement = null,
                     isImportedPhoto = false,
                     containerWidthDp = containerWidthDp,
-                    fontScale = fontScale
+                    fontScale = fontScale,
+                    context = getApplication()
                 )
 
                 // 4. 갤러리(DCIM/BassShot) 자동 저장
@@ -410,7 +411,8 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                 measurement = measure,
                 isImportedPhoto = isImported,
                 containerWidthDp = containerWidthDp,
-                fontScale = fontScale
+                fontScale = fontScale,
+                context = getApplication()
             )
 
             val prefs = userPreferencesRepository.userPreferencesFlow.firstOrNull()
@@ -730,7 +732,8 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                             measurement = measurement,
                             isImportedPhoto = currentState.isImportedPhoto,
                             containerWidthDp = containerWidthDp,
-                            fontScale = fontScale
+                            fontScale = fontScale,
+                            context = getApplication()
                         )
                     } else null
                 }

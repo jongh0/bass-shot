@@ -12,9 +12,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,8 +31,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -34,19 +42,24 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.jongh0.bassshot.R
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.NormalizedPoint
 import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
-import com.jongh0.bassshot.ui.theme.MutedSilver
+import com.jongh0.bassshot.ui.theme.ElectricCyan
+import com.jongh0.bassshot.ui.theme.ElectricCyanGlow
+import com.jongh0.bassshot.ui.theme.FrostedGlassBg
+import com.jongh0.bassshot.ui.theme.FrostedGlassBorder
+import com.jongh0.bassshot.ui.theme.NeonLime
 import com.jongh0.bassshot.ui.theme.OpticalWhite
-import com.jongh0.bassshot.ui.theme.OpticalWhiteGlow
-import com.jongh0.bassshot.ui.theme.SubtleTitanium
-import com.jongh0.bassshot.ui.theme.TitaniumSilver
+import com.jongh0.bassshot.ui.theme.PillBadgeBg
 import com.jongh0.bassshot.ui.theme.WarmGraphite
 import kotlin.math.hypot
 
@@ -71,6 +84,12 @@ fun MeasurementOverlay(
         val heightPx = constraints.maxHeight.toFloat()
         val touchRadiusPx = with(density) { 64.dp.toPx() }
 
+        val snoutPx = Offset(measurement.snoutPoint.x * widthPx, measurement.snoutPoint.y * heightPx)
+        val tailPx = Offset(measurement.tailPoint.x * widthPx, measurement.tailPoint.y * heightPx)
+        val midX = (snoutPx.x + tailPx.x) / 2f
+        val midY = (snoutPx.y + tailPx.y) / 2f
+
+        // 1. 배스 계측 캔버스 (사이언 대시 점선 + 캘리퍼스 브래킷)
         Canvas(
             modifier = Modifier
                 .fillMaxSize()
@@ -81,11 +100,11 @@ fun MeasurementOverlay(
                         var curSnout = initialModel.snoutPoint
                         var curTail = initialModel.tailPoint
 
-                        val snoutPx = Offset(curSnout.x * widthPx, curSnout.y * heightPx)
-                        val tailPx = Offset(curTail.x * widthPx, curTail.y * heightPx)
+                        val sPx = Offset(curSnout.x * widthPx, curSnout.y * heightPx)
+                        val tPx = Offset(curTail.x * widthPx, curTail.y * heightPx)
 
-                        val dSnout = hypot(down.position.x - snoutPx.x, down.position.y - snoutPx.y)
-                        val dTail = hypot(down.position.x - tailPx.x, down.position.y - tailPx.y)
+                        val dSnout = hypot(down.position.x - sPx.x, down.position.y - sPx.y)
+                        val dTail = hypot(down.position.x - tPx.x, down.position.y - tPx.y)
 
                         val minD = minOf(dSnout, dTail)
                         val target = when {
@@ -140,159 +159,287 @@ fun MeasurementOverlay(
                     }
                 }
         ) {
-            val snoutPx = Offset(measurement.snoutPoint.x * widthPx, measurement.snoutPoint.y * heightPx)
-            val tailPx = Offset(measurement.tailPoint.x * widthPx, measurement.tailPoint.y * heightPx)
-
-            val dashOn = with(density) { 5.dp.toPx() }
-            val dashOff = with(density) { 8.5.dp.toPx() }
+            val dashOn = with(density) { 6.dp.toPx() }
+            val dashOff = with(density) { 6.dp.toPx() }
             val mainDash = PathEffect.dashPathEffect(floatArrayOf(dashOn, dashOff), 0f)
 
-            // 1. 주 캘리퍼스 가이드라인 (배스를 가리지 않는 가볍고 섬세한 점선)
+            // 1-1. 주 캘리퍼스 가이드라인 (일렉트릭 사이언 점선 + 드롭 섀도우)
             drawLine(
-                color = Color(0x8C000000),
+                color = Color(0x99000000),
                 start = snoutPx,
                 end = tailPx,
-                strokeWidth = with(density) { 3.dp.toPx() },
+                strokeWidth = with(density) { 3.5.dp.toPx() },
                 pathEffect = mainDash
             )
             drawLine(
-                color = OpticalWhite,
+                color = ElectricCyan,
                 start = snoutPx,
                 end = tailPx,
-                strokeWidth = with(density) { 1.4.dp.toPx() },
+                strokeWidth = with(density) { 1.8.dp.toPx() },
                 pathEffect = mainDash
             )
 
-            // 2. 정밀 캘리퍼스 턱 (Snout / Tail Jaw)
-            val jawHalfWidth = 26.dp.toPx()
-            drawLine(
-                color = Color(0xC0000000),
-                start = Offset(snoutPx.x - jawHalfWidth, snoutPx.y),
-                end = Offset(snoutPx.x + jawHalfWidth, snoutPx.y),
-                strokeWidth = 5.5f
-            )
-            drawLine(
-                color = OpticalWhite,
-                start = Offset(snoutPx.x - jawHalfWidth, snoutPx.y),
-                end = Offset(snoutPx.x + jawHalfWidth, snoutPx.y),
-                strokeWidth = 2.6f
-            )
-            drawLine(
-                color = Color(0xC0000000),
-                start = Offset(tailPx.x - jawHalfWidth, tailPx.y),
-                end = Offset(tailPx.x + jawHalfWidth, tailPx.y),
-                strokeWidth = 5.5f
-            )
-            drawLine(
-                color = OpticalWhite,
-                start = Offset(tailPx.x - jawHalfWidth, tailPx.y),
-                end = Offset(tailPx.x + jawHalfWidth, tailPx.y),
-                strokeWidth = 2.6f
+            // 1-2. 정밀 캘리퍼스 브래킷: Snout (┌──+──┐) & Tail (└──+──┘)
+            val jawHalfWidth = with(density) { 28.dp.toPx() }
+            val lipLength = with(density) { 14.dp.toPx() }
+            val bracketStroke = with(density) { 2.4.dp.toPx() }
+            val shadowStroke = with(density) { 4.5.dp.toPx() }
+
+            // 주둥이 브래킷 (하향 ㄷ자 ┌───+───┐)
+            drawCaliperBracket(
+                center = snoutPx,
+                halfWidth = jawHalfWidth,
+                lipLength = lipLength,
+                isSnout = true,
+                color = ElectricCyan,
+                strokeWidth = bracketStroke,
+                shadowWidth = shadowStroke,
+                isActive = activeTarget == DragTarget.SNOUT
             )
 
-            // 3. 고감도 정밀 레티클 핸들 (주둥이 & 꼬리 - 중앙부는 완전히 투명하여 피사체가 그대로 보임)
-            val handleRadius = 18.dp.toPx()
-            drawPrecisionHandle(snoutPx, OpticalWhite, activeTarget == DragTarget.SNOUT, handleRadius)
-            drawPrecisionHandle(tailPx, OpticalWhite, activeTarget == DragTarget.TAIL, handleRadius)
+            // 꼬리 브래킷 (상향 ㄷ자 └───+───┘)
+            drawCaliperBracket(
+                center = tailPx,
+                halfWidth = jawHalfWidth,
+                lipLength = lipLength,
+                isSnout = false,
+                color = ElectricCyan,
+                strokeWidth = bracketStroke,
+                shadowWidth = shadowStroke,
+                isActive = activeTarget == DragTarget.TAIL
+            )
         }
 
-        // 4. 좌상단(TopStart) 스펙 텍스트 (날씨 3줄 아래 일정한 고정 위치에 항상 배치)
+        // 2. 중앙 길이 캡슐 뱃지 (Pill Badge: [ + 35.2cm ])
         val isDragging = activeTarget != DragTarget.NONE
+        val badgeWidthEst = with(density) { 86.dp.toPx() }
+        val badgeHeightEst = with(density) { 26.dp.toPx() }
+
+        Box(
+            modifier = Modifier
+                .offset {
+                    IntOffset(
+                        x = (midX - badgeWidthEst / 2).toInt(),
+                        y = (midY - badgeHeightEst / 2).toInt()
+                    )
+                }
+                .clip(RoundedCornerShape(13.dp))
+                .background(PillBadgeBg)
+                .border(1.2.dp, ElectricCyan, RoundedCornerShape(13.dp))
+                .padding(horizontal = 10.dp, vertical = 3.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = "+",
+                    color = ElectricCyan,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "${measurement.lengthCm}cm",
+                    color = OpticalWhite,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontFamily = FontFamily.SansSerif
+                )
+            }
+        }
+
+        // 3. 우상단(TopEnd) 계측 결과 카드 (나노 바나나 목업 디자인 일치)
         val textShadow = Shadow(
             color = Color(0xD9000000),
             offset = Offset(0f, 2f),
             blurRadius = 6f
         )
-        // 날씨, 바람, 기압 정보 유무나 불러온 사진 여부와 상관없이 항상 날씨 3줄 아래의 동일한 고정 위치 유지
-        val weatherBlockHeight = with(density) { (48.sp).toDp() } + 14.dp
-        val topPadding = weatherBlockHeight + 24.dp
 
-        Column(
+        Box(
             modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = topPadding, start = 12.dp)
-                .alpha(if (isDragging) 0.35f else 1.0f),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+                .align(Alignment.TopEnd)
+                .padding(top = 10.dp, end = 12.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(FrostedGlassBg)
+                .border(1.dp, FrostedGlassBorder, RoundedCornerShape(16.dp))
+                .padding(horizontal = 14.dp, vertical = 10.dp)
+                .widthIn(min = 135.dp)
+                .alpha(if (isDragging) 0.45f else 1.0f)
         ) {
-            // 4줄: 길이 (날짜와 동일한 OpticalWhite 적용)
-            Text(
-                text = "길이 ${measurement.lengthCm}cm",
-                style = TextStyle(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 11.5.sp,
-                    lineHeight = 16.sp,
-                    shadow = textShadow
-                ),
-                color = OpticalWhite
-            )
+            Column(
+                horizontalAlignment = Alignment.Start,
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // 3-1. 헤더: 줄자(좌) & 물고기(우)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_ruler),
+                        contentDescription = null,
+                        tint = Color(0x99FFFFFF),
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Icon(
+                        painter = painterResource(R.drawable.ic_fish),
+                        contentDescription = null,
+                        tint = Color(0x99FFFFFF),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
 
-            // 5줄: 무게 (날짜와 동일한 OpticalWhite 적용)
-            Text(
-                text = "무게 ${measurement.weightG}g",
-                style = TextStyle(
-                    fontFamily = FontFamily.SansSerif,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 11.5.sp,
-                    lineHeight = 16.sp,
-                    shadow = textShadow
-                ),
-                color = OpticalWhite
-            )
+                // 3-2. 길이 섹션
+                Text(
+                    text = "길이",
+                    color = NeonLime,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    style = TextStyle(shadow = textShadow)
+                )
+
+                Row(
+                    verticalAlignment = Alignment.Bottom,
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = "${measurement.lengthCm}",
+                        color = NeonLime,
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = FontFamily.SansSerif,
+                        style = TextStyle(shadow = textShadow)
+                    )
+                    Text(
+                        text = "cm",
+                        color = NeonLime,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(bottom = 3.dp),
+                        style = TextStyle(shadow = textShadow)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                // 3-3. 무게 섹션
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "무게",
+                        color = WarmGraphite,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        style = TextStyle(shadow = textShadow)
+                    )
+
+                    Row(
+                        verticalAlignment = Alignment.Bottom,
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        Text(
+                            text = "${measurement.weightG}",
+                            color = OpticalWhite,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = FontFamily.SansSerif,
+                            style = TextStyle(shadow = textShadow)
+                        )
+                        Text(
+                            text = "g",
+                            color = Color(0xCCFFFFFF),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier.padding(bottom = 2.dp),
+                            style = TextStyle(shadow = textShadow)
+                        )
+                    }
+                }
+
+                // 3-4. 푸터: 저울(좌) & 케틀벨(우)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_scale),
+                        contentDescription = null,
+                        tint = Color(0x66FFFFFF),
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Icon(
+                        painter = painterResource(R.drawable.ic_weight),
+                        contentDescription = null,
+                        tint = Color(0x66FFFFFF),
+                        modifier = Modifier.size(14.dp)
+                    )
+                }
+            }
         }
     }
 }
 
-private fun DrawScope.drawPrecisionHandle(
+/**
+ * 캘리퍼스 브래킷 드로잉 (주둥이: ┌──+──┐, 꼬리: └──+──┘)
+ */
+private fun DrawScope.drawCaliperBracket(
     center: Offset,
+    halfWidth: Float,
+    lipLength: Float,
+    isSnout: Boolean,
     color: Color,
-    isActive: Boolean,
-    baseRadius: Float
+    strokeWidth: Float,
+    shadowWidth: Float,
+    isActive: Boolean
 ) {
-    val radius = if (isActive) baseRadius * 1.25f else baseRadius
-    val strokeWidth = if (isActive) 3.2f else 2.4f
+    val left = center.x - halfWidth
+    val right = center.x + halfWidth
+    val y = center.y
+    val lipY = if (isSnout) y + lipLength else y - lipLength
 
+    // 드래그 활성 시 글로우 아우라
     if (isActive) {
-        // 활성화 시 외곽 글로우 링 (중앙 및 내부는 비어있어 피사체 확인 가능)
         drawCircle(
-            color = OpticalWhiteGlow,
-            radius = radius * 1.7f,
-            center = center,
-            style = Stroke(width = 3.5f)
+            color = ElectricCyanGlow,
+            radius = halfWidth + 8f,
+            center = center
         )
     }
 
-    // 1. 외곽 블랙 드롭 섀도우 링 (밝거나 어두운 배경 어디서나 링 테두리가 선명히 보이도록)
-    drawCircle(
-        color = Color(0xC0000000),
-        radius = radius,
-        center = center,
-        style = Stroke(width = strokeWidth + 2.5f)
+    val path = Path().apply {
+        moveTo(left, lipY)
+        lineTo(left, y)
+        lineTo(right, y)
+        lineTo(right, lipY)
+    }
+
+    // 1. 드롭 섀도우
+    drawPath(
+        path = path,
+        color = Color(0xCC000000),
+        style = Stroke(width = shadowWidth)
     )
 
-    // 2. 메인 테두리 링 (중앙부는 fill 없이 100% 투명하여 주둥이/꼬리 끝점이 그대로 보임!)
-    drawCircle(
+    // 2. 메인 브래킷
+    drawPath(
+        path = path,
         color = color,
-        radius = radius,
-        center = center,
         style = Stroke(width = strokeWidth)
     )
 
-    // 3. 링 바깥쪽으로 뻗은 십자 조준선 (링 내부는 뚫려있어 가리지 않고, 바깥에서 중심 위치를 가리킴)
-    val tickLen = radius * 0.45f
-    val tickStroke = if (isActive) 2.2f else 1.6f
-    val shadowTickStroke = tickStroke + 2.5f
-    val shadowColor = Color(0xC0000000)
+    // 3. 중심 크로스헤어 '+' 틱
+    val tickHalf = 5f
+    // 수평 틱 섀도우 & 메인
+    drawLine(Color(0xCC000000), Offset(center.x - tickHalf, y), Offset(center.x + tickHalf, y), shadowWidth)
+    drawLine(color, Offset(center.x - tickHalf, y), Offset(center.x + tickHalf, y), strokeWidth)
 
-    // 십자선 그림자
-    drawLine(shadowColor, Offset(center.x, center.y - radius - tickLen), Offset(center.x, center.y - radius), shadowTickStroke)
-    drawLine(shadowColor, Offset(center.x, center.y + radius), Offset(center.x, center.y + radius + tickLen), shadowTickStroke)
-    drawLine(shadowColor, Offset(center.x - radius - tickLen, center.y), Offset(center.x - radius, center.y), shadowTickStroke)
-    drawLine(shadowColor, Offset(center.x + radius, center.y), Offset(center.x + radius + tickLen, center.y), shadowTickStroke)
-
-    // 십자선 본체
-    drawLine(color, Offset(center.x, center.y - radius - tickLen), Offset(center.x, center.y - radius), tickStroke)
-    drawLine(color, Offset(center.x, center.y + radius), Offset(center.x, center.y + radius + tickLen), tickStroke)
-    drawLine(color, Offset(center.x - radius - tickLen, center.y), Offset(center.x - radius, center.y), tickStroke)
-    drawLine(color, Offset(center.x + radius, center.y), Offset(center.x + radius + tickLen, center.y), tickStroke)
+    // 수직 틱 섀도우 & 메인
+    drawLine(Color(0xCC000000), Offset(center.x, y - tickHalf), Offset(center.x, y + tickHalf), shadowWidth)
+    drawLine(color, Offset(center.x, y - tickHalf), Offset(center.x, y + tickHalf), strokeWidth)
 }

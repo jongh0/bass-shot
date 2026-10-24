@@ -33,6 +33,25 @@ data class EnvironmentData(
     }
 
     /**
+     * 나노 바나나 스타일 깔끔한 날짜 조합: "2026. 10. 24 (토)"
+     */
+    fun formattedDateAndDayClean(): String {
+        val cleanDate = dateFormatted
+            .replace("년 ", ". ")
+            .replace("월 ", ". ")
+            .replace("일", "")
+            .trim()
+        val shortDay = dayOfWeekFormatted.replace("요일", "").trim()
+        return if (cleanDate.isNotEmpty() && shortDay.isNotEmpty()) {
+            "$cleanDate ($shortDay)"
+        } else if (cleanDate.isNotEmpty()) {
+            cleanDate
+        } else {
+            formattedDateAndDayLine()
+        }
+    }
+
+    /**
      * 주소 전용 라인 (긴 주소도 잘리지 않도록 독립 줄로 제공)
      */
     fun formattedAddressOnly(): String {

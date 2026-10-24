@@ -311,7 +311,15 @@ fun BassShotScreen(
                             )
                         }
 
-                        // 계측 캘리퍼스 HUD & 상단 스펙 뱃지 (실제 배스가 검출되었거나 직접 수동 계측 모드를 켰을 때만 표시)
+                        // 타임마크 및 날씨 오버레이 (갤러리에서 불러온 사진이 아닐 때만 표시)
+                        if (!uiState.isImportedPhoto) {
+                            TimemarkOverlay(
+                                environmentData = uiState.environmentData,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
+
+                        // 계측 캘리퍼스 HUD & 우상단 스펙 카드 (배스 검출 또는 수동 직접 계측 모드 시)
                         val showMeasurement = uiState.measurement != null && 
                             (uiState.measurement!!.isBassDetected || uiState.isManualMeasurementEnabled)
 
@@ -325,14 +333,6 @@ fun BassShotScreen(
                                     }
                                 )
                             }
-                        }
-
-                        // 타임마크 및 날씨 오버레이 (갤러리에서 불러온 사진이 아닐 때만 표시)
-                        if (!uiState.isImportedPhoto) {
-                            TimemarkOverlay(
-                                environmentData = uiState.environmentData,
-                                modifier = Modifier.fillMaxSize()
-                            )
                         }
                     }
                 }
