@@ -163,7 +163,7 @@ fun IssueReportDialog(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "제보해주신 데이터는 AI 계측 모델 성능 개선에 소중히 활용됩니다.",
+                            text = "제보해주신 데이터는 성능 개선에 소중히 활용됩니다.",
                             color = MutedSilver,
                             fontSize = 12.5.sp,
                             lineHeight = 17.sp
@@ -235,8 +235,8 @@ fun IssueReportDialog(
                 Text(
                     text = when (reportType) {
                         IssueReportType.GENERAL -> "발생한 문제나 건의사항을 적어주시면 기기 사양 정보 및 시스템 동작 로그와 함께 개발팀에 전달됩니다."
-                        IssueReportType.SAVED_PHOTO -> "사진의 계측 오류나 문제점을 적어주시면 사진 및 메타데이터와 함께 전달되어 AI 정확도 개선에 반영됩니다."
-                        else -> "발생한 문제점을 간단히 적어주시면 촬영 사진, 계측 데이터, 시스템 로그와 함께 전달되어 AI 정확도 개선에 반영됩니다."
+                        IssueReportType.SAVED_PHOTO -> "사진의 계측 오류나 문제점을 적어주시면 사진 및 메타데이터와 함께 전달되어 성능 개선에 반영됩니다."
+                        else -> "발생한 문제점을 간단히 적어주시면 촬영 사진, 계측 데이터, 시스템 로그와 함께 전달되어 성능 개선에 반영됩니다."
                     },
                     color = WarmGraphite,
                     fontSize = 12.5.sp,
