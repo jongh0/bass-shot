@@ -45,6 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -62,6 +63,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.AppState
@@ -107,7 +109,7 @@ fun BassShotScreen(
 
     var showDiscardConfirmDialog by remember { mutableStateOf(false) }
     var containerWidthDp by remember { mutableFloatStateOf(360f) }
-    val fontScale = LocalDensity.current.fontScale
+    val fontScale = 1.0f // HUD 오버레이 폰트는 단말기 시스템 글꼴 크기 설정과 무관하게 1.0f로 고정
 
     // 셔터 클릭 시 이미지 영역 전체가 살짝 투명한 흰색으로 번쩍이는 플래시 시각 피드백 (찰칵 셔터음 길이 약 150~160ms와 1:1 매칭)
     val flashAlpha = remember { Animatable(0f) }
@@ -219,7 +221,16 @@ fun BassShotScreen(
                     .background(Color.Black)
             ) {
                 containerWidthDp = maxWidth.value
-                when (uiState.appState) {
+                val density = LocalDensity.current
+
+                // 카메라 뷰파인더 및 오버레이 전체의 글꼴 배율을 1.0f로 고정
+                CompositionLocalProvider(
+                    LocalDensity provides Density(
+                        density = density.density,
+                        fontScale = 1.0f
+                    )
+                ) {
+                    when (uiState.appState) {
                     AppState.CAMERA_PREVIEW -> {
                         // 실시간 카메라 프리뷰
                         CameraPreviewContent(
@@ -337,13 +348,14 @@ fun BassShotScreen(
                     }
                 }
 
-                // 셔터 플래시(번쩍임) 시각 피드백 오버레이: 촬영 순간 이미지 영역 전체를 살짝 투명한 흰색으로 깜빡임
-                if (flashAlpha.value > 0f) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.White.copy(alpha = flashAlpha.value))
-                    )
+                    // 셔터 플래시(번쩍임) 시각 피드백 오버레이: 촬영 순간 이미지 영역 전체를 살짝 투명한 흰색으로 깜빡임
+                    if (flashAlpha.value > 0f) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.White.copy(alpha = flashAlpha.value))
+                        )
+                    }
                 }
             }
 

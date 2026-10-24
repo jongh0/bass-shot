@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,6 +46,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -74,11 +76,19 @@ fun MeasurementOverlay(
     modifier: Modifier = Modifier
 ) {
     val density = LocalDensity.current
-    var activeTarget by remember { mutableStateOf(DragTarget.NONE) }
-    val currentMeasurement by rememberUpdatedState(measurement)
-    val currentOnUpdated by rememberUpdatedState(onMeasurementUpdated)
 
-    BoxWithConstraints(modifier = modifier.fillMaxSize()) {
+    // 계측 HUD 오버레이는 시스템 글꼴 배율(fontScale) 설정과 무관하게 1.0f로 고정하여 레이아웃 깨짐 원천 방지
+    CompositionLocalProvider(
+        LocalDensity provides Density(
+            density = density.density,
+            fontScale = 1.0f
+        )
+    ) {
+        var activeTarget by remember { mutableStateOf(DragTarget.NONE) }
+        val currentMeasurement by rememberUpdatedState(measurement)
+        val currentOnUpdated by rememberUpdatedState(onMeasurementUpdated)
+
+        BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val widthPx = constraints.maxWidth.toFloat()
         val heightPx = constraints.maxHeight.toFloat()
         val touchRadiusPx = with(density) { 64.dp.toPx() }
@@ -391,6 +401,7 @@ fun MeasurementOverlay(
             }
         }
     }
+}
 }
 
 /**

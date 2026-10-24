@@ -57,9 +57,10 @@ object HighResCanvasCompositor {
         canvas.drawBitmap(originalBitmap, 0f, 0f, null)
 
         // 화면(Compose)과 1:1 완벽하게 동일한 비례/크기/배치 스케일링 계수
+        // HUD 오버레이 폰트는 단말기 시스템 글꼴 크기 설정에 영향받지 않도록 1.0f 고정
         val validContainerWidth = if (containerWidthDp > 100f) containerWidthDp else 360f
         val scaleDp = width / validContainerWidth
-        val scaleFont = scaleDp * fontScale
+        val scaleFont = scaleDp
 
         val hasMeasurement = measurement != null && (measurement.isBassDetected || measurement.isManualFallback)
         val hasWeather = !isImportedPhoto

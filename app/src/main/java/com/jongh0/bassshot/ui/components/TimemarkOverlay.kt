@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,11 +28,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.R
@@ -45,14 +48,23 @@ fun TimemarkOverlay(
     environmentData: EnvironmentData,
     modifier: Modifier = Modifier
 ) {
-    // 텍스트 드롭 섀도우 (밝은 수면/야외에서도 시인성 보장)
-    val textShadow = Shadow(
-        color = Color(0xD9000000),
-        offset = Offset(0f, 2f),
-        blurRadius = 6f
-    )
+    val currentDensity = LocalDensity.current
 
-    Box(modifier = modifier.fillMaxSize()) {
+    // 카메라 HUD 오버레이는 시스템 글꼴 배율(fontScale) 설정과 무관하게 1.0f로 고정하여 레이아웃 깨짐 원천 방지
+    CompositionLocalProvider(
+        LocalDensity provides Density(
+            density = currentDensity.density,
+            fontScale = 1.0f
+        )
+    ) {
+        // 텍스트 드롭 섀도우 (밝은 수면/야외에서도 시인성 보장)
+        val textShadow = Shadow(
+            color = Color(0xD9000000),
+            offset = Offset(0f, 2f),
+            blurRadius = 6f
+        )
+
+        Box(modifier = modifier.fillMaxSize()) {
         // 1. 좌상단 날씨/바람/기압 카드 (프로스티드 글래스 라운드 카드 + 아이콘)
         Box(
             modifier = Modifier
@@ -247,4 +259,5 @@ fun TimemarkOverlay(
             }
         }
     }
+}
 }
