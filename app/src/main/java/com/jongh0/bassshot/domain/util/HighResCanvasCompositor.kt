@@ -202,14 +202,14 @@ object HighResCanvasCompositor {
         canvas.drawText(lenText, textStartX + plusWidth, textBaselineY, lenPaint)
 
         // 4. 우상단(TopEnd) 계측 결과 카드 (직사각형 모서리 + 우상단 끝 밀착)
-        val cardWidth = 140f * scaleDp
-        val cardHeight = 88f * scaleDp
+        val cardWidth = 120f * scaleDp
+        val cardHeight = 74f * scaleDp
         val cardTop = 0f
         val cardRight = width.toFloat()
         val cardLeft = cardRight - cardWidth
         val cardBottom = cardHeight
-        val cardPaddingH = 14f * scaleDp
-        val cardPaddingV = 12f * scaleDp
+        val cardPaddingH = 10f * scaleDp
+        val cardPaddingV = 8f * scaleDp
 
         val cardBgPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.argb(56, 0, 0, 0) // FrostedGlassBg
@@ -218,7 +218,7 @@ object HighResCanvasCompositor {
         val cardRect = RectF(cardLeft, 0f, cardRight, cardBottom)
         canvas.drawRect(cardRect, cardBgPaint)
 
-        val rowGap = 8f * scaleDp
+        val rowGap = 5f * scaleDp
         val lineHeight = 16f * scaleFont
 
         // 4-1. 헤더: 줄자(좌) & 물고기(우)
@@ -350,11 +350,11 @@ object HighResCanvasCompositor {
 
         val cardLeft = 0f
         val cardTop = 0f
-        val cardPaddingH = 14f * scaleDp
-        val cardPaddingV = 12f * scaleDp
+        val cardPaddingH = 10f * scaleDp
+        val cardPaddingV = 8f * scaleDp
         val iconSize = 15f * scaleDp
-        val iconTextGap = 8f * scaleDp
-        val rowGap = 8f * scaleDp
+        val iconTextGap = 6f * scaleDp
+        val rowGap = 5f * scaleDp
 
         val wPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(COLOR_OPTICAL_WHITE)
@@ -363,7 +363,7 @@ object HighResCanvasCompositor {
             textAlign = Paint.Align.LEFT
         }
 
-        val cardW = 140f * scaleDp
+        val cardW = 120f * scaleDp
         val lineHeight = 16f * scaleFont
         val cardH = cardPaddingV * 2 + (lineHeight * 3) + (rowGap * 2)
 

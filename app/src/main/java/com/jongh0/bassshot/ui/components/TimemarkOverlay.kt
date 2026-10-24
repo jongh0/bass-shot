@@ -68,20 +68,20 @@ fun TimemarkOverlay(
         Box(
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .width(140.dp)
+                .width(120.dp)
                 .background(FrostedGlassBg)
-                .padding(horizontal = 14.dp, vertical = 12.dp)
+                .padding(horizontal = 10.dp, vertical = 8.dp)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 // 1줄: 날씨 및 기온
                 Row(
                     modifier = Modifier.height(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_weather_cloud),
@@ -107,7 +107,7 @@ fun TimemarkOverlay(
                 Row(
                     modifier = Modifier.height(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_wind),
@@ -133,7 +133,7 @@ fun TimemarkOverlay(
                 Row(
                     modifier = Modifier.height(16.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_barometer),

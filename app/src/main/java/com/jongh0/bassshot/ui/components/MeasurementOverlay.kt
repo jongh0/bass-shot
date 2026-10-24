@@ -261,15 +261,15 @@ fun MeasurementOverlay(
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
-                .width(140.dp)
+                .width(120.dp)
                 .background(FrostedGlassBg)
-                .padding(horizontal = 14.dp, vertical = 12.dp)
+                .padding(horizontal = 10.dp, vertical = 8.dp)
                 .alpha(if (isDragging) 0.45f else 1.0f)
         ) {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 // 3-1. 헤더: 줄자(좌) & 물고기(우)
                 Row(
