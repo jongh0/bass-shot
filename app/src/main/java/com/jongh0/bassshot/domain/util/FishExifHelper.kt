@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.EnvironmentData
+import com.jongh0.bassshot.domain.model.NormalizedPoint
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -171,5 +172,98 @@ object FishExifHelper {
         } catch (e: Exception) {
             false
         }
+    }
+
+    /**
+     * 사진 파일/URI의 EXIF TAG_USER_COMMENT에 저장된 무손실 JSON FishExifRecord 파싱
+     */
+    fun readFishExifRecord(context: Context, uri: Uri): FishExifRecord? {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val exif = ExifInterface(inputStream)
+                val userComment = exif.getAttribute(ExifInterface.TAG_USER_COMMENT) ?: return@use null
+                json.decodeFromString<FishExifRecord>(userComment)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
+     * 사진의 EXIF로부터 당시 촬영 환경 정보(시간, 날짜, 기압, 날씨, 위치 등) 복원
+     */
+    fun extractEnvironmentData(context: Context, uri: Uri): EnvironmentData? {
+        val record = readFishExifRecord(context, uri)
+        if (record != null) {
+            val env = record.environment
+            // ISO 날짜 파싱 (2026-10-24T15:30:00)
+            val parsedDate = runCatching { isoDateFormat.parse(record.timestamp) }.getOrNull()
+            val timeStr = parsedDate?.let { SimpleDateFormat("HH:mm", Locale.KOREA).format(it) } ?: "00:00"
+            val dateStr = parsedDate?.let { SimpleDateFormat("yyyy년 M월 d일", Locale.KOREA).format(it) } ?: ""
+            val dayOfWeekStr = parsedDate?.let { SimpleDateFormat("EEEE", Locale.KOREA).format(it) } ?: ""
+
+            return EnvironmentData(
+                timeFormatted = timeStr,
+                dateFormatted = dateStr,
+                dayOfWeekFormatted = dayOfWeekStr,
+                tempCelsius = env.temp_celsius,
+                weatherDescription = env.weather,
+                windSpeedMps = env.wind_speed_mps,
+                pressureHpa = env.pressure_hpa,
+                isFromBarometerSensor = env.is_sensor_barometer,
+                addressKorean = env.address,
+                latitude = env.latitude,
+                longitude = env.longitude
+            )
+        }
+
+        // 일반 사진인 경우 기본 EXIF 파싱
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val exif = ExifInterface(inputStream)
+                val latLong = exif.latLong
+                val dateStrRaw = exif.getAttribute(ExifInterface.TAG_DATETIME_ORIGINAL)
+                    ?: exif.getAttribute(ExifInterface.TAG_DATETIME)
+
+                val parsedDate = if (dateStrRaw != null) {
+                    runCatching { exifDateFormat.parse(dateStrRaw) }.getOrNull()
+                } else null
+
+                val timeStr = parsedDate?.let { SimpleDateFormat("HH:mm", Locale.KOREA).format(it) } ?: "00:00"
+                val dateStr = parsedDate?.let { SimpleDateFormat("yyyy년 M월 d일", Locale.KOREA).format(it) } ?: ""
+                val dayOfWeekStr = parsedDate?.let { SimpleDateFormat("EEEE", Locale.KOREA).format(it) } ?: ""
+
+                EnvironmentData(
+                    timeFormatted = timeStr,
+                    dateFormatted = dateStr,
+                    dayOfWeekFormatted = dayOfWeekStr,
+                    latitude = latLong?.get(0),
+                    longitude = latLong?.get(1)
+                )
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    /**
+     * 사진의 EXIF로부터 당시 AI 계측 결과 복원
+     */
+    fun extractMeasurementData(context: Context, uri: Uri): BassMeasurementUiModel? {
+        val record = readFishExifRecord(context, uri) ?: return null
+        val m = record.measurement ?: return null
+
+        return BassMeasurementUiModel(
+            isBassDetected = m.is_bass_detected,
+            isManualFallback = m.is_manual,
+            lengthCm = m.length_cm,
+            girthCm = m.girth_cm,
+            weightG = m.weight_g,
+            snoutPoint = NormalizedPoint(m.snout_point.x, m.snout_point.y),
+            tailPoint = NormalizedPoint(m.tail_point.x, m.tail_point.y),
+            maxGirthLeft = NormalizedPoint(0.40f, 0.48f),
+            maxGirthRight = NormalizedPoint(0.60f, 0.48f),
+            cmPerNormalizedUnit = if (m.length_cm > 0f) m.length_cm else 30f
+        )
     }
 }

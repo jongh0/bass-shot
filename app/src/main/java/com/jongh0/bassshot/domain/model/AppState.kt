@@ -39,5 +39,9 @@ data class BassShotUiState(
     val issueReportType: IssueReportType = IssueReportType.MEASUREMENT_INACCURATE,
     val isSubmittingIssue: Boolean = false,
     val issueSubmitProgress: String? = null,
-    val lastCreatedIssueUrl: String? = null
+    val lastCreatedIssueUrl: String? = null,
+    val issueReportOriginalBitmap: Bitmap? = null,
+    val issueReportCompositeBitmap: Bitmap? = null,
+    val issueReportEnvironmentData: EnvironmentData? = null,
+    val issueReportMeasurement: BassMeasurementUiModel? = null
 )

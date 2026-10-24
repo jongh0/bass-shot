@@ -66,6 +66,7 @@ fun IssueReportDialog(
     createdIssueUrl: String?,
     errorMessage: String?,
     hasMeasurement: Boolean,
+    hasOriginalPhoto: Boolean = true,
     onDismissRequest: () -> Unit,
     onSubmit: (comment: String, actualLength: Float?, actualWeight: Int?, includeLogs: Boolean) -> Unit
 ) {
@@ -346,8 +347,12 @@ fun IssueReportDialog(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = "자동 첨부:", color = WarmGraphite, fontSize = 11.sp)
-                    Text(text = "📷 원본", color = MutedSilver, fontSize = 11.sp)
-                    if (hasMeasurement) Text(text = "📏 계측본", color = MutedSilver, fontSize = 11.sp)
+                    if (hasOriginalPhoto) {
+                        Text(text = "📷 원본", color = MutedSilver, fontSize = 11.sp)
+                        if (hasMeasurement) Text(text = "📏 계측본", color = MutedSilver, fontSize = 11.sp)
+                    } else {
+                        Text(text = "📷 사진", color = MutedSilver, fontSize = 11.sp)
+                    }
                     Text(text = "📱 기기정보", color = MutedSilver, fontSize = 11.sp)
                     Text(text = "🌦️ 환경스펙", color = MutedSilver, fontSize = 11.sp)
                 }

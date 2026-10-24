@@ -61,24 +61,34 @@ object IssueReportFormatter {
                 append("\n")
             }
 
-            // 3. 이미지 첨부 테이블
-            if (!originalImageUrl.isNullOrBlank() || !compositeImageUrl.isNullOrBlank()) {
+            // 3. 이미지 첨부
+            val hasOrig = !originalImageUrl.isNullOrBlank()
+            val hasComp = !compositeImageUrl.isNullOrBlank()
+
+            if (hasOrig && hasComp) {
                 append("## 📸 이미지 첨부\n")
                 append("| 원본 이미지 (Original) | 계측/타임마크 합성본 (Composite) |\n")
                 append("| :---: | :---: |\n")
-                val origCell = if (!originalImageUrl.isNullOrBlank()) "![Original]($originalImageUrl)" else "미첨부"
-                val compCell = if (!compositeImageUrl.isNullOrBlank()) "![Composite]($compositeImageUrl)" else "미첨부"
-                append("| $origCell | $compCell |\n\n")
+                append("| ![Original]($originalImageUrl) | ![Composite]($compositeImageUrl) |\n\n")
+            } else if (hasComp) {
+                append("## 📸 이미지 첨부\n")
+                append("![제보 사진]($compositeImageUrl)\n\n")
+            } else if (hasOrig) {
+                append("## 📸 이미지 첨부\n")
+                append("![제보 사진]($originalImageUrl)\n\n")
             }
 
             // 4. 기기 및 환경 정보
             append("## 📱 기기 및 환경 정보\n")
             append("```\n")
             append(AppLogger.getDeviceInfo(context))
-            append("\n제보 일시: $nowStr\n")
+            append("\n제보 등록 일시: $nowStr\n")
 
             input.environmentData?.let { env ->
-                append("--- 촬영 환경 ---\n")
+                append("\n--- 촬영 환경 (EXIF / 센서) ---\n")
+                if (env.dateFormatted.isNotBlank() && env.timeFormatted.isNotBlank()) {
+                    append("촬영 일시: ${env.dateFormatted} (${env.dayOfWeekFormatted}) ${env.timeFormatted}\n")
+                }
                 if (!env.addressKorean.isNullOrBlank()) append("위치: ${env.addressKorean}\n")
                 if (env.latitude != null && env.longitude != null) append("좌표: ${env.latitude}, ${env.longitude}\n")
                 if (env.tempCelsius != null) append("기온: ${env.tempCelsius}°C\n")

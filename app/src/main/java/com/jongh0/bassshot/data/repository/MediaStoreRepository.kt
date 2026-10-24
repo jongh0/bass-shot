@@ -220,4 +220,35 @@ class MediaStoreRepository(private val context: Context) {
             AppLogger.e("MediaStore", "Failed to delete photo: $uri", e)
         }
     }
+
+    /**
+     * 합성본 사진 파일명에 대응하는 무보정 원본(_ORIG.jpg)이 갤러리에 존재하는지 조회
+     */
+    fun findOriginalPhotoUri(displayName: String): Uri? {
+        if (displayName.contains("_ORIG")) return null
+        val baseName = displayName.substringBeforeLast(".")
+        val ext = displayName.substringAfterLast(".", "jpg")
+        val origName = "${baseName}_ORIG.$ext"
+
+        val projection = arrayOf(MediaStore.Images.Media._ID)
+        val selection = "${MediaStore.Images.Media.DISPLAY_NAME} = ?"
+        val selectionArgs = arrayOf(origName)
+
+        return try {
+            context.contentResolver.query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                projection,
+                selection,
+                selectionArgs,
+                null
+            )?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID))
+                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
+                } else null
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
 }

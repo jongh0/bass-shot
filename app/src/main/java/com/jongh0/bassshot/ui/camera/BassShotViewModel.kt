@@ -3,6 +3,7 @@ package com.jongh0.bassshot.ui.camera
 import android.Manifest
 import android.app.Application
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageProxy
@@ -25,6 +26,7 @@ import com.jongh0.bassshot.domain.model.IssueReportType
 import com.jongh0.bassshot.domain.model.SavedPhotoItem
 import com.jongh0.bassshot.domain.util.AppLogger
 import com.jongh0.bassshot.domain.util.BitmapProcessor
+import com.jongh0.bassshot.domain.util.FishExifHelper
 import com.jongh0.bassshot.domain.util.FishMeasurementCalculator
 import com.jongh0.bassshot.domain.util.HighResCanvasCompositor
 import kotlinx.coroutines.Dispatchers
@@ -608,13 +610,18 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
     fun hasValidGitHubToken(): Boolean = issueReportRepository.hasValidToken()
 
     /**
-     * GitHub 이슈 제보 다이얼로그 열기
+     * GitHub 이슈 제보 다이얼로그 열기 (계측 결과 화면 / 일반 피드백)
      */
     fun openIssueReportDialog(type: IssueReportType = IssueReportType.MEASUREMENT_INACCURATE) {
+        val currentState = _uiState.value
         _uiState.update {
             it.copy(
                 showIssueReportDialog = true,
                 issueReportType = type,
+                issueReportOriginalBitmap = currentState.capturedOriginalBitmap,
+                issueReportCompositeBitmap = null,
+                issueReportEnvironmentData = currentState.environmentData,
+                issueReportMeasurement = currentState.measurement,
                 lastCreatedIssueUrl = null,
                 issueSubmitProgress = null
             )
@@ -627,12 +634,28 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
     fun openIssueReportForSavedPhoto(item: SavedPhotoItem) {
         viewModelScope.launch(Dispatchers.Default) {
             try {
-                val decoded = BitmapProcessor.decodeUriWithExif(getApplication(), item.uri)
+                // 1. 현재 사진 비트맵 디코딩
+                val currentPhotoBitmap = BitmapProcessor.decodeUriWithExif(getApplication(), item.uri).bitmap
+
+                // 2. 짝꿍 무보정 원본(_ORIG) 사진이 갤러리에 있는지 조회
+                val origUri = mediaStoreRepository.findOriginalPhotoUri(item.displayName)
+                val origBitmap = if (origUri != null) {
+                    runCatching { BitmapProcessor.decodeUriWithExif(getApplication(), origUri).bitmap }.getOrNull()
+                } else null
+
+                // 3. 사진의 EXIF로부터 당시 촬영 환경 및 계측 데이터 복원
+                val photoEnv = FishExifHelper.extractEnvironmentData(getApplication(), item.uri)
+                val photoMeasurement = FishExifHelper.extractMeasurementData(getApplication(), item.uri)
+
                 _uiState.update {
                     it.copy(
-                        capturedOriginalBitmap = decoded.bitmap,
                         showIssueReportDialog = true,
                         issueReportType = IssueReportType.SAVED_PHOTO,
+                        // 원본이 실제로 있으면 원본+합성본 2장, 없으면 해당 사진 1장만 전달
+                        issueReportOriginalBitmap = origBitmap,
+                        issueReportCompositeBitmap = currentPhotoBitmap,
+                        issueReportEnvironmentData = photoEnv,
+                        issueReportMeasurement = photoMeasurement,
                         lastCreatedIssueUrl = null,
                         issueSubmitProgress = null
                     )
@@ -649,7 +672,11 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
                 showIssueReportDialog = false,
                 isSubmittingIssue = false,
                 issueSubmitProgress = null,
-                lastCreatedIssueUrl = null
+                lastCreatedIssueUrl = null,
+                issueReportOriginalBitmap = null,
+                issueReportCompositeBitmap = null,
+                issueReportEnvironmentData = null,
+                issueReportMeasurement = null
             )
         }
     }
@@ -666,10 +693,9 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
         fontScale: Float = 1.0f
     ) {
         val currentState = _uiState.value
-        val originalBitmap = currentState.capturedOriginalBitmap
-        val measurement = currentState.measurement
-        val env = currentState.environmentData
         val reportType = currentState.issueReportType
+        val env = currentState.issueReportEnvironmentData ?: currentState.environmentData
+        val measurement = currentState.issueReportMeasurement ?: currentState.measurement
 
         viewModelScope.launch(Dispatchers.Default) {
             _uiState.update {
@@ -681,17 +707,31 @@ class BassShotViewModel(application: Application) : AndroidViewModel(application
             }
 
             try {
-                // 계측 합성본 비트맵 생성 (원본 비트맵이 있을 때)
-                val compositeBitmap = if (originalBitmap != null) {
-                    HighResCanvasCompositor.composite(
-                        originalBitmap = originalBitmap,
-                        environmentData = env,
-                        measurement = measurement,
-                        isImportedPhoto = currentState.isImportedPhoto,
-                        containerWidthDp = containerWidthDp,
-                        fontScale = fontScale
-                    )
-                } else null
+                // 비트맵 결정:
+                // 1) 뷰어에서 지정된 비트맵이 있는 경우:
+                //    - 짝꿍 원본이 있으면 orig, 없으면 null! 합성본 자리에 해당 사진 1장!
+                // 2) 계측 화면에서 방금 촬영한 경우:
+                //    - originalBitmap은 무보정 원본!
+                //    - compositeBitmap은 계측/타임마크를 합성한 고해상도 비트맵!
+                val originalBitmap: Bitmap?
+                val compositeBitmap: Bitmap?
+
+                if (currentState.issueReportCompositeBitmap != null) {
+                    originalBitmap = currentState.issueReportOriginalBitmap
+                    compositeBitmap = currentState.issueReportCompositeBitmap
+                } else {
+                    originalBitmap = currentState.issueReportOriginalBitmap ?: currentState.capturedOriginalBitmap
+                    compositeBitmap = if (originalBitmap != null) {
+                        HighResCanvasCompositor.composite(
+                            originalBitmap = originalBitmap,
+                            environmentData = env,
+                            measurement = measurement,
+                            isImportedPhoto = currentState.isImportedPhoto,
+                            containerWidthDp = containerWidthDp,
+                            fontScale = fontScale
+                        )
+                    } else null
+                }
 
                 val input = IssueReportInput(
                     reportType = reportType,
