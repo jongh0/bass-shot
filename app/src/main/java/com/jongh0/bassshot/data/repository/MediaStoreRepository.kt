@@ -176,12 +176,18 @@ class MediaStoreRepository(private val context: Context) {
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                         id
                     )
+                    val isAlreadyMeasured = if (displayName.contains("_ORIG")) {
+                        false
+                    } else {
+                        FishExifHelper.hasMeasurementData(context, contentUri)
+                    }
                     photoList.add(
                         SavedPhotoItem(
                             id = id,
                             uri = contentUri,
                             displayName = displayName,
-                            dateAdded = dateAdded
+                            dateAdded = dateAdded,
+                            isAlreadyMeasured = isAlreadyMeasured
                         )
                     )
                 }

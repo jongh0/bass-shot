@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.Straighten
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -65,7 +66,8 @@ fun PhotoViewerDialog(
     photos: List<SavedPhotoItem>,
     initialIndex: Int = 0,
     onDismissRequest: () -> Unit,
-    onDeletePhoto: (SavedPhotoItem) -> Unit
+    onDeletePhoto: (SavedPhotoItem) -> Unit,
+    onMeasurePhoto: ((SavedPhotoItem, Int) -> Unit)? = null
 ) {
     if (photos.isEmpty()) {
         onDismissRequest()
@@ -147,7 +149,7 @@ fun PhotoViewerDialog(
                     }
                 }
 
-                // 3. 하단 액션 바 (카카오톡 전송, 더보기, 삭제 - 내비게이션 바 위 96dp 수직 중앙 정렬)
+                // 3. 하단 액션 바 (카카오톡 전송, 공유, AI 계측, 삭제 - 내비게이션 바 위 96dp 수직 중앙 정렬)
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -158,7 +160,7 @@ fun PhotoViewerDialog(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = 48.dp),
+                            .padding(horizontal = 24.dp),
                         horizontalArrangement = Arrangement.SpaceAround,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -229,7 +231,30 @@ fun PhotoViewerDialog(
                             )
                         }
 
-                        // [액션 3] 삭제 버튼
+                        // [액션 3] AI 계측 버튼 (삭제 버튼 좌측 배치, 일반 모드로 찍은 사진을 뷰어에서 바로 계측으로 전환)
+                        // 이미 계측 정보가 포함된 사진은 계측 버튼 숨김
+                        if (onMeasurePhoto != null && currentPhoto != null && !currentPhoto.isAlreadyMeasured) {
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .clip(CircleShape)
+                                    .background(AnodizedCharcoal)
+                                    .border(1.dp, SubtleTitanium, CircleShape)
+                                    .clickable {
+                                        onMeasurePhoto(currentPhoto, pagerState.currentPage)
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Straighten,
+                                    contentDescription = "AI 계측하기",
+                                    tint = OpticalWhite,
+                                    modifier = Modifier.size(22.dp)
+                                )
+                            }
+                        }
+
+                        // [액션 4] 삭제 버튼
                         Box(
                             modifier = Modifier
                                 .size(48.dp)

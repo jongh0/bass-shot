@@ -20,7 +20,7 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "ba
 data class UserPreferences(
     val referenceGloveWidthCm: Float = 9.5f,
     val saveOriginalPhoto: Boolean = true,
-    val shutterSoundEnabled: Boolean = true,
+    val cameraMode: String = "NORMAL",
     val cachedLatitude: Double? = null,
     val cachedLongitude: Double? = null,
     val cachedAddress: String? = null,
@@ -34,7 +34,7 @@ class UserPreferencesRepository(private val context: Context) {
     private object PreferencesKeys {
         val KEY_GLOVE_WIDTH = floatPreferencesKey("reference_glove_width_cm")
         val KEY_SAVE_ORIGINAL = booleanPreferencesKey("save_original_photo")
-        val KEY_SHUTTER_SOUND = booleanPreferencesKey("shutter_sound_enabled")
+        val KEY_CAMERA_MODE = stringPreferencesKey("last_camera_mode")
         val KEY_CACHED_LAT = doublePreferencesKey("cached_lat")
         val KEY_CACHED_LON = doublePreferencesKey("cached_lon")
         val KEY_CACHED_ADDRESS = stringPreferencesKey("cached_address")
@@ -54,7 +54,7 @@ class UserPreferencesRepository(private val context: Context) {
         .map { preferences ->
             val gloveWidth = preferences[PreferencesKeys.KEY_GLOVE_WIDTH] ?: 9.5f
             val saveOriginal = preferences[PreferencesKeys.KEY_SAVE_ORIGINAL] ?: true
-            val shutterSound = preferences[PreferencesKeys.KEY_SHUTTER_SOUND] ?: true
+            val modeStr = preferences[PreferencesKeys.KEY_CAMERA_MODE] ?: "NORMAL"
             val lat = preferences[PreferencesKeys.KEY_CACHED_LAT]
             val lon = preferences[PreferencesKeys.KEY_CACHED_LON]
             val address = preferences[PreferencesKeys.KEY_CACHED_ADDRESS]
@@ -65,7 +65,7 @@ class UserPreferencesRepository(private val context: Context) {
             UserPreferences(
                 referenceGloveWidthCm = gloveWidth.coerceIn(5.0f, 20.0f),
                 saveOriginalPhoto = saveOriginal,
-                shutterSoundEnabled = shutterSound,
+                cameraMode = modeStr,
                 cachedLatitude = lat,
                 cachedLongitude = lon,
                 cachedAddress = address,
@@ -74,6 +74,12 @@ class UserPreferencesRepository(private val context: Context) {
                 cachedWeatherDesc = desc
             )
         }
+
+    suspend fun updateCameraMode(modeName: String) {
+        context.dataStore.edit { preferences ->
+            preferences[PreferencesKeys.KEY_CAMERA_MODE] = modeName
+        }
+    }
 
     suspend fun updateReferenceGloveWidth(widthCm: Float) {
         val validated = widthCm.coerceIn(5.0f, 20.0f)
@@ -85,12 +91,6 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun updateSaveOriginalPhoto(save: Boolean) {
         context.dataStore.edit { preferences ->
             preferences[PreferencesKeys.KEY_SAVE_ORIGINAL] = save
-        }
-    }
-
-    suspend fun updateShutterSound(enabled: Boolean) {
-        context.dataStore.edit { preferences ->
-            preferences[PreferencesKeys.KEY_SHUTTER_SOUND] = enabled
         }
     }
 

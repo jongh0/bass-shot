@@ -6,5 +6,6 @@ data class SavedPhotoItem(
     val id: Long,
     val uri: Uri,
     val displayName: String,
-    val dateAdded: Long
+    val dateAdded: Long,
+    val isAlreadyMeasured: Boolean = false
 )

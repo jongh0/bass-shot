@@ -8,8 +8,14 @@ enum class AppState {
     RESULT_SAVED     // AI 계측 완료, 캘리퍼스 미세조정 및 DCIM/BassShot 저장 완료 상태
 }
 
+enum class CameraMode {
+    NORMAL,       // 일반 촬영: 타임마크 오버레이 자동 합성 & 즉시 연속 저장 (프리뷰 유지)
+    MEASUREMENT   // AI 계측: 촬영 후 Gemini AI 분석 및 캘리퍼스 미세조정 화면 진입
+}
+
 data class BassShotUiState(
     val appState: AppState = AppState.CAMERA_PREVIEW,
+    val cameraMode: CameraMode = CameraMode.NORMAL,
     val environmentData: EnvironmentData = EnvironmentData(),
     val capturedOriginalBitmap: Bitmap? = null,
     val measurement: BassMeasurementUiModel? = null,
@@ -17,7 +23,6 @@ data class BassShotUiState(
     val isImportedPhoto: Boolean = false,
     val isAnalyzing: Boolean = false,
     val isSaving: Boolean = false,
-    val isShutterSoundEnabled: Boolean = true,
     val currentGloveWidthCm: Float = 9.5f,
     val currentSaveOriginal: Boolean = true,
     val savedPhotoUriString: String? = null,
@@ -28,5 +33,6 @@ data class BassShotUiState(
     val updateVersionName: String? = null,
     val savedPhotos: List<SavedPhotoItem> = emptyList(),
     val isPhotoViewerOpen: Boolean = false,
-    val initialViewerPhotoIndex: Int = 0
+    val initialViewerPhotoIndex: Int = 0,
+    val sourceViewerIndex: Int? = null
 )

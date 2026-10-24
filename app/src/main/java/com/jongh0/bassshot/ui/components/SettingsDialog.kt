@@ -46,13 +46,11 @@ import com.jongh0.bassshot.ui.theme.WarmGraphite
 fun SettingsDialog(
     currentGloveWidthCm: Float,
     currentSaveOriginal: Boolean,
-    currentShutterSound: Boolean = true,
     onDismissRequest: () -> Unit,
-    onSaveSettings: (gloveWidthCm: Float, saveOriginal: Boolean, shutterSound: Boolean) -> Unit
+    onSaveSettings: (gloveWidthCm: Float, saveOriginal: Boolean) -> Unit
 ) {
     var gloveWidthText by remember { mutableStateOf(currentGloveWidthCm.toString()) }
     var saveOriginalState by remember { mutableStateOf(currentSaveOriginal) }
-    var shutterSoundState by remember { mutableStateOf(currentShutterSound) }
     var hasError by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = onDismissRequest) {
@@ -137,40 +135,6 @@ fun SettingsDialog(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // 카메라 촬영음 스위치
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "카메라 촬영음 재생",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.SemiBold),
-                        color = MutedSilver
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "사진 촬영 시 셔터 사운드를 재생합니다.",
-                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 11.sp),
-                        color = WarmGraphite
-                    )
-                }
-
-                Switch(
-                    checked = shutterSoundState,
-                    onCheckedChange = { shutterSoundState = it },
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = TitaniumSilver,
-                        checkedTrackColor = ObsidianBlack,
-                        uncheckedThumbColor = WarmGraphite,
-                        uncheckedTrackColor = AnodizedCharcoal
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             // 원본 사진 함께 저장 옵션
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -217,7 +181,7 @@ fun SettingsDialog(
                 Button(
                     onClick = {
                         val parsed = gloveWidthText.toFloatOrNull()?.coerceIn(5.0f, 20.0f) ?: 9.5f
-                        onSaveSettings(parsed, saveOriginalState, shutterSoundState)
+                        onSaveSettings(parsed, saveOriginalState)
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = TitaniumSilver,

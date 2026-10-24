@@ -1,5 +1,7 @@
 package com.jongh0.bassshot.domain.util
 
+import android.content.Context
+import android.net.Uri
 import androidx.exifinterface.media.ExifInterface
 import com.jongh0.bassshot.domain.model.BassMeasurementUiModel
 import com.jongh0.bassshot.domain.model.EnvironmentData
@@ -14,7 +16,7 @@ import java.util.Locale
 @Serializable
 data class FishExifRecord(
     val app: String = "BassShot",
-    val version: String = "1.0.3",
+    val version: String = "1.2.0",
     val timestamp: String,
     val measurement: MeasurementExifData?,
     val environment: EnvironmentExifData
@@ -146,6 +148,28 @@ object FishExifHelper {
             exif.saveAttributes()
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    /**
+     * 주어진 사진 파일/URI의 EXIF 메타데이터에 이미 배스 계측 데이터가 주입되어 있는지 확인
+     */
+    fun hasMeasurementData(context: Context, uri: Uri): Boolean {
+        return try {
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                val exif = ExifInterface(inputStream)
+                val desc = exif.getAttribute(ExifInterface.TAG_IMAGE_DESCRIPTION)
+                if (desc != null && desc.contains("[배스 계측]")) {
+                    return@use true
+                }
+                val comment = exif.getAttribute(ExifInterface.TAG_USER_COMMENT)
+                if (comment != null && (comment.contains("\"is_bass_detected\":true") || comment.contains("\"is_bass_detected\": true"))) {
+                    return@use true
+                }
+                false
+            } ?: false
+        } catch (e: Exception) {
+            false
         }
     }
 }

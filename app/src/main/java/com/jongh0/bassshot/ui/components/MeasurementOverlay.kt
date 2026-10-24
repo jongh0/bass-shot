@@ -196,16 +196,16 @@ fun MeasurementOverlay(
             drawPrecisionHandle(tailPx, OpticalWhite, activeTarget == DragTarget.TAIL, handleRadius)
         }
 
-        // 4. 좌상단(TopStart) 스펙 텍스트 (날씨 3줄 아래 살짝 간격을 띄워서 배치)
+        // 4. 좌상단(TopStart) 스펙 텍스트 (날씨 3줄 아래 일정한 고정 위치에 항상 배치)
         val isDragging = activeTarget != DragTarget.NONE
         val textShadow = Shadow(
             color = Color(0xD9000000),
             offset = Offset(0f, 2f),
             blurRadius = 6f
         )
-        // 날씨 3줄(10dp 시작 + 3줄 텍스트(16sp*3) + 사이간격 4dp) 아래에 여유 있는 간격(24dp) 추가
+        // 날씨, 바람, 기압 정보 유무나 불러온 사진 여부와 상관없이 항상 날씨 3줄 아래의 동일한 고정 위치 유지
         val weatherBlockHeight = with(density) { (48.sp).toDp() } + 14.dp
-        val topPadding = if (hasWeatherAbove) weatherBlockHeight + 24.dp else 10.dp
+        val topPadding = weatherBlockHeight + 24.dp
 
         Column(
             modifier = Modifier

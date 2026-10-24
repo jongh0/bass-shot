@@ -145,12 +145,8 @@ object HighResCanvasCompositor {
             )
         }
 
-        // hasWeatherAbove인 경우: 날씨 3줄 아래에 여유 있는 간격(24dp) 추가
-        val y1 = if (hasWeatherAbove) {
-            wTop + (13f * scaleFont) + (lineHeight * 3) + (24f * scaleDp)
-        } else {
-            wTop + (13f * scaleFont)
-        }
+        // 날씨, 바람, 기압 정보 유무나 불러온 사진 여부와 상관없이 항상 계측 화면과 동일한 시각적 간격(13dp 엣지 갭)으로 기압 아래에 합성
+        val y1 = wTop + (13f * scaleFont) + (lineHeight * 3) + (11f * scaleDp)
         canvas.drawText("길이 ${measurement.lengthCm}cm", badgeLeft, y1, specPaint)
         canvas.drawText("무게 ${measurement.weightG}g", badgeLeft, y1 + lineHeight, specPaint)
     }
