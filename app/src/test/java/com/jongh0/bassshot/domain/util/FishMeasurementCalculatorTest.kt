@@ -64,4 +64,53 @@ class FishMeasurementCalculatorTest {
         assertTrue(updated.lengthCm > initial.lengthCm)
         assertTrue(updated.weightG > initial.weightG)
     }
+
+    @Test
+    fun testNormalizedPoint_scaleNormalizations() {
+        // 0.0~1.0 표준 비율
+        assertEquals(0.954f, NormalizedPoint(0.5f, 0.954f).clamped().y, 0.001f)
+        // 0~10 스케일 (9.54 -> 0.954)
+        assertEquals(0.954f, NormalizedPoint(0.5f, 9.54f).clamped().y, 0.001f)
+        // 0~100% 백분율 (95.4 -> 0.954)
+        assertEquals(0.954f, NormalizedPoint(0.5f, 95.4f).clamped().y, 0.001f)
+        // 0~1000 프로밀/픽셀 (954.0 -> 0.954)
+        assertEquals(0.954f, NormalizedPoint(0.5f, 954.0f).clamped().y, 0.001f)
+    }
+
+    @Test
+    fun testFromDto_guardsAgainstExplodedCmPerUnit() {
+        // AI가 주둥이와 꼬리를 거의 같은 위치(거리 0.01)로 반환하더라도 cmPerNormalizedUnit이 75를 넘지 않음
+        val dto = BassMeasurementDto(
+            isBassDetected = true,
+            lengthCm = 35.5f,
+            girthCm = 9.0f,
+            weightG = 600,
+            snoutPoint = NormalizedPoint(0.5f, 0.20f),
+            tailPoint = NormalizedPoint(0.5f, 0.21f)
+        )
+        val uiModel = FishMeasurementCalculator.fromDto(dto, 0.75f)
+        assertTrue("cmPerNormalizedUnit should be guarded <= 75.0", uiModel.cmPerNormalizedUnit <= 75.0f)
+    }
+
+    @Test
+    fun testRecalculateOnDrag_neverExceedsRealisticLength() {
+        val dto = BassMeasurementDto(
+            isBassDetected = true,
+            lengthCm = 35.5f,
+            girthCm = 9.0f,
+            weightG = 600,
+            snoutPoint = NormalizedPoint(0.5f, 0.2f),
+            tailPoint = NormalizedPoint(0.5f, 0.8f)
+        )
+        val initial = FishMeasurementCalculator.fromDto(dto, 0.75f)
+
+        // 극단적인 화면 모서리(0,0 -> 1,1) 드래그 시에도 최대 85cm로 제한
+        val dragged = FishMeasurementCalculator.recalculateOnDrag(
+            current = initial,
+            newSnout = NormalizedPoint(0.01f, 0.01f),
+            newTail = NormalizedPoint(0.99f, 0.99f)
+        )
+        assertTrue("Length should never exceed 85cm", dragged.lengthCm <= 85.0f)
+        assertTrue("Weight should be realistic", dragged.weightG <= 10000)
+    }
 }

@@ -49,8 +49,10 @@ object FishMeasurementCalculator {
         val girthL = dto.maxGirthLeft.clamped()
         val girthR = dto.maxGirthRight.clamped()
 
-        val initialLengthDist = calculateNormalizedDistance(snout, tail, aspectRatio).coerceAtLeast(0.05f)
-        val cmPerUnit = (dto.lengthCm / initialLengthDist).coerceIn(15.0f, 200.0f)
+        // 배스 전장 유효 최소 거리: 화면의 15% 이상이어야 정상 검출로 인정 (좌표 뭉침 방어)
+        val initialLengthDist = calculateNormalizedDistance(snout, tail, aspectRatio).coerceAtLeast(0.15f)
+        // 스마트폰 3:4 세로 촬영 화각(거리 40~70cm) 기준 1.0 정규화 단위(화면 전체)는 현실적으로 25~75cm 범위
+        val cmPerUnit = (dto.lengthCm / initialLengthDist).coerceIn(20.0f, 75.0f)
 
         val roundedLength = (dto.lengthCm * 10f).roundToInt() / 10f
         val roundedGirth = (dto.girthCm * 10f).roundToInt() / 10f
@@ -119,8 +121,11 @@ object FishMeasurementCalculator {
         val girthDist = calculateNormalizedDistance(clampedGirthL, clampedGirthR, current.imageAspectRatio)
             .coerceAtLeast(0.02f)
 
-        val newLengthCm = ((lengthDist * current.cmPerNormalizedUnit) * 10f).roundToInt() / 10f
-        val newGirthCm = ((girthDist * current.cmPerNormalizedUnit) * 10f).roundToInt() / 10f
+        val safeCmPerUnit = current.cmPerNormalizedUnit.coerceIn(20.0f, 75.0f)
+        val rawLength = (lengthDist * safeCmPerUnit * 10f).roundToInt() / 10f
+        val newLengthCm = rawLength.coerceIn(5.0f, 85.0f)
+        val rawGirth = (girthDist * safeCmPerUnit * 10f).roundToInt() / 10f
+        val newGirthCm = rawGirth.coerceIn(2.0f, 35.0f)
         val newWeightG = calculateWeightGrams(newLengthCm, newGirthCm)
 
         return current.copy(

@@ -18,7 +18,7 @@ import java.util.Locale
 @Serializable
 data class FishExifRecord(
     val app: String = "BassShot",
-    val version: String = "1.4.0",
+    val version: String = "1.4.1",
     val timestamp: String,
     val measurement: MeasurementExifData?,
     val environment: EnvironmentExifData
@@ -311,17 +311,22 @@ object FishExifHelper {
         val girthLeft = m.max_girth_left?.let { NormalizedPoint(it.x, it.y) } ?: NormalizedPoint(0.40f, 0.48f)
         val girthRight = m.max_girth_right?.let { NormalizedPoint(it.x, it.y) } ?: NormalizedPoint(0.60f, 0.48f)
 
+        val snout = NormalizedPoint(m.snout_point.x, m.snout_point.y).clamped()
+        val tail = NormalizedPoint(m.tail_point.x, m.tail_point.y).clamped()
+        val dist = FishMeasurementCalculator.calculateNormalizedDistance(snout, tail, 0.75f).coerceAtLeast(0.12f)
+        val cmPerUnit = if (m.length_cm > 0f) (m.length_cm / dist).coerceIn(20.0f, 75.0f) else 45.0f
+
         return BassMeasurementUiModel(
             isBassDetected = m.is_bass_detected,
             isManualFallback = m.is_manual,
             lengthCm = m.length_cm,
             girthCm = m.girth_cm,
             weightG = m.weight_g,
-            snoutPoint = NormalizedPoint(m.snout_point.x, m.snout_point.y),
-            tailPoint = NormalizedPoint(m.tail_point.x, m.tail_point.y),
+            snoutPoint = snout,
+            tailPoint = tail,
             maxGirthLeft = girthLeft,
             maxGirthRight = girthRight,
-            cmPerNormalizedUnit = if (m.length_cm > 0f) m.length_cm else 30f
+            cmPerNormalizedUnit = cmPerUnit
         )
     }
 }
