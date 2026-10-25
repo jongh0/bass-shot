@@ -136,16 +136,27 @@ object HighResCanvasCompositor {
         canvas.drawLine(snoutX, snoutY, tailX, tailY, shadowPaint)
         canvas.drawLine(snoutX, snoutY, tailX, tailY, mainLinePaint)
 
-        // 2. Snout & Tail 캘리퍼스 브래킷: Snout (┌──+──┐) & Tail (└──+──┘)
+        // 2. Snout & Tail 캘리퍼스 브래킷 (배스 계측선에 맞춰 360° 직교 자동 회전)
         val jawHalfWidth = 28f * scaleDp
         val lipLength = 14f * scaleDp
         val bracketStroke = 2.4f * scaleDp
         val bracketShadow = 4.5f * scaleDp
 
+        val dx = tailX - snoutX
+        val dy = tailY - snoutY
+        val lineDist = Math.hypot(dx.toDouble(), dy.toDouble()).toFloat()
+        val (ux, uy) = if (lineDist > 0.001f) {
+            Pair(dx / lineDist, dy / lineDist)
+        } else {
+            Pair(0f, 1f)
+        }
+
         drawCaliperBracketOnCanvas(
             canvas = canvas,
             centerX = snoutX,
             centerY = snoutY,
+            ux = ux,
+            uy = uy,
             halfWidth = jawHalfWidth,
             lipLength = lipLength,
             isSnout = true,
@@ -157,6 +168,8 @@ object HighResCanvasCompositor {
             canvas = canvas,
             centerX = tailX,
             centerY = tailY,
+            ux = ux,
+            uy = uy,
             halfWidth = jawHalfWidth,
             lipLength = lipLength,
             isSnout = false,
@@ -305,22 +318,33 @@ object HighResCanvasCompositor {
         canvas: Canvas,
         centerX: Float,
         centerY: Float,
+        ux: Float,
+        uy: Float,
         halfWidth: Float,
         lipLength: Float,
         isSnout: Boolean,
         strokeWidth: Float,
         shadowWidth: Float
     ) {
-        val left = centerX - halfWidth
-        val right = centerX + halfWidth
-        val y = centerY
-        val lipY = if (isSnout) y + lipLength else y - lipLength
+        val vx = -uy
+        val vy = ux
+
+        val p1x = centerX - halfWidth * vx
+        val p1y = centerY - halfWidth * vy
+        val p2x = centerX + halfWidth * vx
+        val p2y = centerY + halfWidth * vy
+
+        val lipDir = if (isSnout) 1f else -1f
+        val lip1x = p1x + lipDir * lipLength * ux
+        val lip1y = p1y + lipDir * lipLength * uy
+        val lip2x = p2x + lipDir * lipLength * ux
+        val lip2y = p2y + lipDir * lipLength * uy
 
         val path = Path().apply {
-            moveTo(left, lipY)
-            lineTo(left, y)
-            lineTo(right, y)
-            lineTo(right, lipY)
+            moveTo(lip1x, lip1y)
+            lineTo(p1x, p1y)
+            lineTo(p2x, p2y)
+            lineTo(lip2x, lip2y)
         }
 
         val shadowPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -337,12 +361,12 @@ object HighResCanvasCompositor {
         canvas.drawPath(path, shadowPaint)
         canvas.drawPath(path, mainPaint)
 
-        // 중심 '+' 틱
+        // 중심 '+' 틱 (계측선 및 직교선에 정렬)
         val tickHalf = 5f * (strokeWidth / 2.4f)
-        canvas.drawLine(centerX - tickHalf, y, centerX + tickHalf, y, shadowPaint)
-        canvas.drawLine(centerX - tickHalf, y, centerX + tickHalf, y, mainPaint)
-        canvas.drawLine(centerX, y - tickHalf, centerX, y + tickHalf, shadowPaint)
-        canvas.drawLine(centerX, y - tickHalf, centerX, y + tickHalf, mainPaint)
+        canvas.drawLine(centerX - tickHalf * vx, centerY - tickHalf * vy, centerX + tickHalf * vx, centerY + tickHalf * vy, shadowPaint)
+        canvas.drawLine(centerX - tickHalf * vx, centerY - tickHalf * vy, centerX + tickHalf * vx, centerY + tickHalf * vy, mainPaint)
+        canvas.drawLine(centerX - tickHalf * ux, centerY - tickHalf * uy, centerX + tickHalf * ux, centerY + tickHalf * uy, shadowPaint)
+        canvas.drawLine(centerX - tickHalf * ux, centerY - tickHalf * uy, centerX + tickHalf * ux, centerY + tickHalf * uy, mainPaint)
     }
 
     private fun drawTimemarkHUD(

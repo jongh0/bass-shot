@@ -191,15 +191,25 @@ fun MeasurementOverlay(
                 pathEffect = mainDash
             )
 
-            // 1-2. 정밀 캘리퍼스 브래킷: Snout (┌──+──┐) & Tail (└──+──┘)
+            // 1-2. 정밀 캘리퍼스 브래킷: Snout & Tail (배스 각도에 맞춰 360° 직교 자동 회전)
             val jawHalfWidth = with(density) { 28.dp.toPx() }
             val lipLength = with(density) { 14.dp.toPx() }
             val bracketStroke = with(density) { 2.4.dp.toPx() }
             val shadowStroke = with(density) { 4.5.dp.toPx() }
 
-            // 주둥이 브래킷 (하향 ㄷ자 ┌───+───┐)
+            val dx = tailPx.x - snoutPx.x
+            val dy = tailPx.y - snoutPx.y
+            val lineDist = hypot(dx, dy)
+            val lineUnitVector = if (lineDist > 0.001f) {
+                Offset(dx / lineDist, dy / lineDist)
+            } else {
+                Offset(0f, 1f)
+            }
+
+            // 주둥이 브래킷 (배스 계측선에 수직 정렬, 가로 촬영 시 세로 브래킷으로 자동 전환)
             drawCaliperBracket(
                 center = snoutPx,
+                lineUnitVector = lineUnitVector,
                 halfWidth = jawHalfWidth,
                 lipLength = lipLength,
                 isSnout = true,
@@ -209,9 +219,10 @@ fun MeasurementOverlay(
                 isActive = activeTarget == DragTarget.SNOUT
             )
 
-            // 꼬리 브래킷 (상향 ㄷ자 └───+───┘)
+            // 꼬리 브래킷 (배스 계측선에 수직 정렬)
             drawCaliperBracket(
                 center = tailPx,
+                lineUnitVector = lineUnitVector,
                 halfWidth = jawHalfWidth,
                 lipLength = lipLength,
                 isSnout = false,
@@ -399,10 +410,14 @@ fun MeasurementOverlay(
 }
 
 /**
- * 캘리퍼스 브래킷 드로잉 (주둥이: ┌──+──┐, 꼬리: └──+──┘)
+ * 캘리퍼스 브래킷 드로잉 (배스 계측선 벡터에 맞춰 360° 직교 자동 회전)
+ * - 세로 배스: 가로 ㄷ자 브래킷 (┌──+──┐ / └──+──┘)
+ * - 가로 배스: 세로 ㄷ자 브래킷 (├──+ / +──┤)
+ * - 사선 배스: 배스 각도에 맞춰 수직 정렬
  */
 private fun DrawScope.drawCaliperBracket(
     center: Offset,
+    lineUnitVector: Offset,
     halfWidth: Float,
     lipLength: Float,
     isSnout: Boolean,
@@ -411,10 +426,11 @@ private fun DrawScope.drawCaliperBracket(
     shadowWidth: Float,
     isActive: Boolean
 ) {
-    val left = center.x - halfWidth
-    val right = center.x + halfWidth
-    val y = center.y
-    val lipY = if (isSnout) y + lipLength else y - lipLength
+    val ux = lineUnitVector.x
+    val uy = lineUnitVector.y
+    // 수직 직교 단위 벡터 (Perpendicular Unit Vector)
+    val vx = -uy
+    val vy = ux
 
     // 드래그 활성 시 글로우 아우라
     if (isActive) {
@@ -425,11 +441,24 @@ private fun DrawScope.drawCaliperBracket(
         )
     }
 
+    // 캘리퍼스 메인 날개 끝점 (계측선과 직교하는 양 끝)
+    val p1x = center.x - halfWidth * vx
+    val p1y = center.y - halfWidth * vy
+    val p2x = center.x + halfWidth * vx
+    val p2y = center.y + halfWidth * vy
+
+    // 캘리퍼스 립(측면 날개)은 배스 몸통 쪽을 향하도록 (Snout은 +u, Tail은 -u)
+    val lipDir = if (isSnout) 1f else -1f
+    val lip1x = p1x + lipDir * lipLength * ux
+    val lip1y = p1y + lipDir * lipLength * uy
+    val lip2x = p2x + lipDir * lipLength * ux
+    val lip2y = p2y + lipDir * lipLength * uy
+
     val path = Path().apply {
-        moveTo(left, lipY)
-        lineTo(left, y)
-        lineTo(right, y)
-        lineTo(right, lipY)
+        moveTo(lip1x, lip1y)
+        lineTo(p1x, p1y)
+        lineTo(p2x, p2y)
+        lineTo(lip2x, lip2y)
     }
 
     // 1. 드롭 섀도우
@@ -446,13 +475,17 @@ private fun DrawScope.drawCaliperBracket(
         style = Stroke(width = strokeWidth)
     )
 
-    // 3. 중심 크로스헤어 '+' 틱
+    // 3. 중심 크로스헤어 '+' 틱 (계측선 및 직교선에 정렬)
     val tickHalf = 5f
-    // 수평 틱 섀도우 & 메인
-    drawLine(Color(0xCC000000), Offset(center.x - tickHalf, y), Offset(center.x + tickHalf, y), shadowWidth)
-    drawLine(color, Offset(center.x - tickHalf, y), Offset(center.x + tickHalf, y), strokeWidth)
+    // 직교 바 방향 틱
+    val barTickStart = Offset(center.x - tickHalf * vx, center.y - tickHalf * vy)
+    val barTickEnd = Offset(center.x + tickHalf * vx, center.y + tickHalf * vy)
+    drawLine(Color(0xCC000000), barTickStart, barTickEnd, shadowWidth)
+    drawLine(color, barTickStart, barTickEnd, strokeWidth)
 
-    // 수직 틱 섀도우 & 메인
-    drawLine(Color(0xCC000000), Offset(center.x, y - tickHalf), Offset(center.x, y + tickHalf), shadowWidth)
-    drawLine(color, Offset(center.x, y - tickHalf), Offset(center.x, y + tickHalf), strokeWidth)
+    // 계측선 방향 틱
+    val lineTickStart = Offset(center.x - tickHalf * ux, center.y - tickHalf * uy)
+    val lineTickEnd = Offset(center.x + tickHalf * ux, center.y + tickHalf * uy)
+    drawLine(Color(0xCC000000), lineTickStart, lineTickEnd, shadowWidth)
+    drawLine(color, lineTickStart, lineTickEnd, strokeWidth)
 }

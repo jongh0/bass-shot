@@ -109,15 +109,15 @@ class GeminiAnalysisDataSource {
                     val startTime = System.currentTimeMillis()
                     AppLogger.i("GeminiAI", "Starting AI measurement analysis (bitmap: ${resizedBitmap.width}x${resizedBitmap.height}, handWidth: ${referenceHandWidthCm}cm)")
                     val responseText = try {
-                        createModel("gemini-3.5-flash").generateContent(
+                        createModel("gemini-3.5-flash-lite").generateContent(
                             content {
                                 image(resizedBitmap)
                                 text(prompt)
                             }
                         ).text
                     } catch (e: Exception) {
-                        AppLogger.w("GeminiAI", "Primary model (gemini-3.5-flash) failed, falling back to gemini-3.5-flash-lite: ${e.message}")
-                        createModel("gemini-3.5-flash-lite").generateContent(
+                        AppLogger.w("GeminiAI", "Primary model (gemini-3.5-flash-lite) failed, falling back to gemini-3.5-flash: ${e.message}")
+                        createModel("gemini-3.5-flash").generateContent(
                             content {
                                 image(resizedBitmap)
                                 text(prompt)

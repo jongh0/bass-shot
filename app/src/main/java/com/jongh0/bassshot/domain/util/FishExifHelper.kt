@@ -18,7 +18,7 @@ import java.util.Locale
 @Serializable
 data class FishExifRecord(
     val app: String = "BassShot",
-    val version: String = "1.3.0",
+    val version: String = "1.4.0",
     val timestamp: String,
     val measurement: MeasurementExifData?,
     val environment: EnvironmentExifData

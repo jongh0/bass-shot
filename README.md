@@ -28,7 +28,7 @@
   - 셔터를 누르면 출조 환경 정보가 합성된 고화질 사진이 백그라운드로 즉시 자동 저장
   - 화면 정지 없이 카메라 프리뷰가 유지되어 빠르고 쾌적한 연속 촬영 지원
 - **AI 계측 모드**:
-  - Gemini Flash 모델(`gemini-3.5-flash` / `gemini-3.5-flash-lite` 자동 폴백)을 통해 주먹(장갑) 기준 폭(기본 9.5cm) 대비 픽셀 비율 측정
+  - Gemini Flash 모델(`gemini-3.5-flash-lite` / `gemini-3.5-flash` 자동 폴백)을 통해 주먹(장갑) 기준 폭(기본 9.5cm) 대비 픽셀 비율 측정
   - 어류학 체장-체고-무게 공식 적용: $W = 0.045 \times L \times G^2$
   - 배스 미검출 또는 통신 단절 시 즉시 수동 직접 계측 모드로 원활하게 전환
 - **모드 전환**: 화면 하단 캡슐형 탭으로 터치 한 번에 모드 전환 (마지막 선택 모드 자동 유지)
@@ -65,7 +65,7 @@
 - **Language & UI:** Kotlin, Jetpack Compose (Material3, Tactical Dark Theme, Nano Banana HUD)
 - **Architecture:** MVVM (ViewModel, StateFlow, Repository Pattern)
 - **Camera:** AndroidX CameraX 1.4.0 (`LifecycleCameraController`)
-- **AI Vision:** Google AI Client SDK for Android (`gemini-3.5-flash` / `gemini-3.5-flash-lite`)
+- **AI Vision:** Google AI Client SDK for Android (`gemini-3.5-flash-lite` / `gemini-3.5-flash`)
 - **Location & Sensors:** Google Play Services Location, Android `SensorManager` (`Sensor.TYPE_PRESSURE`)
 - **Network & Storage:** Retrofit2 + Kotlinx Serialization, OkHttp3, AndroidX DataStore Preferences, MediaStore API, AndroidX ExifInterface
 - **CI/CD:** GitHub Actions (Release APK Build & Auto GitHub Release)
