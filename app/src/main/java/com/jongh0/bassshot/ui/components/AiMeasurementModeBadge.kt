@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.jongh0.bassshot.R
@@ -41,7 +40,6 @@ fun AiMeasurementModeBadge(
         Box(
             modifier = Modifier
                 .size(46.dp)
-                .shadow(elevation = 4.dp, shape = RoundedCornerShape(12.dp))
                 .clip(RoundedCornerShape(12.dp))
                 .background(FrostedGlassBg)
                 .border(1.dp, FrostedGlassBorder, RoundedCornerShape(12.dp)),

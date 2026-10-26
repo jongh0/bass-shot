@@ -27,8 +27,8 @@ android {
         applicationId = "com.jongh0.bassshot"
         minSdk = 26
         targetSdk = 35
-        versionCode = 19
-        versionName = "1.4.1"
+        versionCode = 20
+        versionName = "1.4.2"
 
         buildConfigField("String", "GEMINI_API_KEY", "\"${getSecretProperty("GEMINI_API_KEY")}\"")
         buildConfigField("String", "WEATHER_API_KEY", "\"${getSecretProperty("WEATHER_API_KEY")}\"")

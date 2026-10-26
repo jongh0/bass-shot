@@ -4,160 +4,150 @@
     android:viewportWidth="48"
     android:viewportHeight="48">
 
-    <!-- 1. 물고기 머리 & 몸통 외곽선 -->
+    <!-- 1. 리얼 배스 몸통 라인 (Real Bass Contour) -->
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="M 13.5,4.5
-                          C 12.5,6.5 11.5,8.5 10.5,11
-                          L 13,8.5
-                          L 14.5,11
-                          C 18,14 19.5,19 19,26
-                          C 18.5,31 16.5,35 15.5,37
-                          L 11.5,37
-                          C 10.5,35 8.5,31 8,26
-                          C 7.5,19 9,14 12.5,11
-                          L 13.5,4.5 Z" />
+        android:pathData="M 13,5.5
+                          C 10,7 7.5,11 7,16
+                          C 6.5,21.5 7.5,27 9.5,32
+                          C 10.5,34 11.5,35 12,36
+                          L 15,36
+                          C 15.5,35 16.5,34 17.5,32
+                          C 19.5,27 20.5,21.5 20,16
+                          C 19.5,11 17,7 14,5.5 Z" />
 
-    <!-- 2. 물고기 턱/아가미 분리선 (목 부분의 살짝 웃는 듯한 곡선) -->
+    <!-- 2. 배스 부채형 꼬리지느러미 (Broad Caudal Fin) -->
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
+        android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="M 9.5,14 C 11.5,15.5 15.5,15.5 17.5,13.5" />
+        android:pathData="M 12,36
+                          C 11.5,37.5 9,39.5 7.5,42
+                          C 10.5,42.5 12.5,41 13.5,40
+                          C 14.5,41 16.5,42.5 19.5,42
+                          C 18,39.5 15.5,37.5 15,36 Z" />
 
-    <!-- 3. 물고기 눈 (우측 상단 동그란 눈) -->
+    <!-- 3. 등지느러미 (Dorsal Fin - 우측 등 라인) -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M 19,13 C 22,14.5 22.5,19 19.8,22" />
+
+    <!-- 4. 배지느러미 (Pelvic Fin - 좌측 배 라인) -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M 7.8,20 C 5.5,22 6,25.5 8.5,26.5" />
+
+    <!-- 5. 가슴지느러미 (Pectoral Fin - 몸통 중앙) -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M 12,17 C 14.5,18.5 15,22 13.5,24 C 12,23 11.5,20 12,17 Z" />
+
+    <!-- 6. 아가미 덮개 곡선 (Gill Operculum) -->
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M 9.5,12.5 C 12,14.5 15,14.5 17,12.5" />
+
+    <!-- 7. 물고기 눈 (Eye) -->
     <path
         android:fillColor="#FFFFFFFF"
-        android:pathData="M 15.5,8.8 m -1,0 a 1,1 0 1,1 2,0 a 1,1 0 1,1 -2,0" />
+        android:pathData="M 15,10 m -1.1,0 a 1.1,1.1 0 1,1 2.2,0 a 1.1,1.1 0 1,1 -2.2,0" />
 
-    <!-- 4. 물고기 몸통 중앙 가슴지느러미 -->
+    <!-- 8. 배스 입 라인 (Mouth with characteristic underbite) -->
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="M 12.5,16 C 14.5,16 15,18 14.5,21.5 C 14,22.5 12.5,22.5 12,20 C 11.5,18 11.5,16 12.5,16 Z" />
+        android:pathData="M 12.5,6 C 13.8,7.5 14.8,8 15.8,7.5" />
 
-    <!-- 5. 좌측 지느러미 (배/등 지느러미) -->
-    <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="1.7"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="#00000000"
-        android:pathData="M 8,17 C 5.5,18 4.5,20 6.5,21 C 7.5,21.5 8,21 8,20.5" />
-
-    <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="1.7"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="#00000000"
-        android:pathData="M 8.5,27 C 6.5,27.5 6.5,31 8,31.5 C 9.5,32 10.5,31 10.5,30" />
-
-    <!-- 6. 우측 지느러미 (등/배 지느러미) -->
-    <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="1.7"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="#00000000"
-        android:pathData="M 18.5,16 C 20.5,17 21,21 19.5,24 C 19,25 18.5,25.5 18,25" />
-
-    <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="1.7"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="#00000000"
-        android:pathData="M 16.5,27 C 18.5,27.5 20,29.5 18.5,32 C 17.5,32.5 16.5,31.5 16,30.5" />
-
-    <!-- 7. 꼬리지느러미 밑단 연결선 -->
+    <!-- 9. 우측 눈금자 외곽선 (Vertical Ruler Outline) -->
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.8"
         android:strokeLineCap="round"
         android:strokeLineJoin="round"
         android:fillColor="#00000000"
-        android:pathData="M 11.5,37
-                          C 11,40 8,41 9,43.5
-                          C 9.5,44 11,44 13.5,43
-                          C 16,44 17.5,44 18,43.5
-                          C 19,41 16,40 15.5,37 Z" />
+        android:pathData="M 31,5.5
+                          L 40,5.5
+                          C 41.5,5.5 42,6 42,7.5
+                          L 42,40.5
+                          C 42,42 41.5,42.5 40,42.5
+                          L 31,42.5
+                          C 29.5,42.5 29,42 29,40.5
+                          L 29,7.5
+                          C 29,6 29.5,5.5 31,5.5 Z" />
 
-    <!-- 8. 우측 세로 눈금자 (Ruler Outline) -->
-    <path
-        android:strokeColor="#FFFFFFFF"
-        android:strokeWidth="1.8"
-        android:strokeLineCap="round"
-        android:strokeLineJoin="round"
-        android:fillColor="#00000000"
-        android:pathData="M 31,4.5
-                          L 40,4.5
-                          C 41.5,4.5 42,5 42,6.5
-                          L 42,41.5
-                          C 42,43 41.5,43.5 40,43.5
-                          L 31,43.5
-                          C 29.5,43.5 29,43 29,41.5
-                          L 29,6.5
-                          C 29,5 29.5,4.5 31,4.5 Z" />
-
-    <!-- 9. 눈금자 눈금선 (Graduation Ticks) -->
+    <!-- 10. 눈금선 (Ruler Ticks) -->
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M 29,8 L 34.5,8" />
+        android:pathData="M 29,9 L 34.5,9" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.5"
         android:strokeLineCap="round"
-        android:pathData="M 29,11.5 L 32.5,11.5" />
+        android:pathData="M 29,12.5 L 32.5,12.5" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M 29,15 L 34.5,15" />
+        android:pathData="M 29,16 L 34.5,16" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.5"
         android:strokeLineCap="round"
-        android:pathData="M 29,18.5 L 32.5,18.5" />
+        android:pathData="M 29,19.5 L 32.5,19.5" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M 29,22 L 34.5,22" />
+        android:pathData="M 29,23 L 34.5,23" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.5"
         android:strokeLineCap="round"
-        android:pathData="M 29,25.5 L 32.5,25.5" />
+        android:pathData="M 29,26.5 L 32.5,26.5" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M 29,29 L 34.5,29" />
+        android:pathData="M 29,30 L 34.5,30" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.5"
         android:strokeLineCap="round"
-        android:pathData="M 29,32.5 L 32.5,32.5" />
+        android:pathData="M 29,33.5 L 32.5,33.5" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.6"
         android:strokeLineCap="round"
-        android:pathData="M 29,36 L 34.5,36" />
+        android:pathData="M 29,37 L 34.5,37" />
     <path
         android:strokeColor="#FFFFFFFF"
         android:strokeWidth="1.5"
         android:strokeLineCap="round"
-        android:pathData="M 29,39.5 L 32.5,39.5" />
+        android:pathData="M 29,40.5 L 32.5,40.5" />
 
 </vector>
