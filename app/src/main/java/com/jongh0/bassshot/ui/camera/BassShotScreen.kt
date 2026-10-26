@@ -69,6 +69,7 @@ import androidx.compose.ui.unit.sp
 import com.jongh0.bassshot.domain.model.AppState
 import com.jongh0.bassshot.domain.model.CameraMode
 import com.jongh0.bassshot.domain.model.IssueReportType
+import com.jongh0.bassshot.ui.components.AiMeasurementModeBadge
 import com.jongh0.bassshot.ui.components.IssueReportDialog
 import com.jongh0.bassshot.ui.components.MeasurementOverlay
 import com.jongh0.bassshot.ui.components.PhotoViewerDialog
@@ -251,6 +252,14 @@ fun BassShotScreen(
                         TimemarkOverlay(
                             environmentData = uiState.environmentData,
                             modifier = Modifier.fillMaxSize()
+                        )
+
+                        // 실시간 AI 계측 모드 인디케이터 배지 (우상단)
+                        AiMeasurementModeBadge(
+                            visible = uiState.cameraMode == CameraMode.MEASUREMENT,
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 10.dp, end = 12.dp)
                         )
                     }
 
